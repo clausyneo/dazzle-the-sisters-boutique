@@ -158,3 +158,26 @@ The project has passed 94 automated tests and manual end-to-end testing of its c
 ---
 
 Developed for academic and practical learning purposes.
+## Screenshots
+
+### Customer Website
+
+![Homepage](docs/screenshots/01-homepage.png)
+
+![Collections](docs/screenshots/02-collections.png)
+
+![Product Catalogue](docs/screenshots/03-product-catalogue.png)
+
+![Product Catalogue - More Products](docs/screenshots/04-product-catalogue-more.png)
+
+![Shopping Cart](docs/screenshots/05-shopping-cart.png)
+
+![Order Confirmation](docs/screenshots/06-order-confirmation.png)
+
+![Order Tracking](docs/screenshots/07-order-tracking.png)
+
+### Admin Panel
+
+![Admin Dashboard](docs/screenshots/08-admin-dashboard-redacted.png)
+
+![Admin Order Details](docs/screenshots/09-admin-order-details-redacted.png)
