@@ -38,31 +38,108 @@ Dazzle the Sister's Boutique is an online shopping platform for women's ethnic w
 | Database driver | mysql2 |
 | Version control | Git and GitHub |
 
+
 ## Project Structure
 
 ```text
 dazzle-the-sisters-boutique/
 ├── backend/
 │   ├── accounts.js
+│   ├── accounts.test.js
 │   ├── admin.js
+│   ├── admin.test.js
+│   ├── create-admin.js
 │   ├── database.js
 │   ├── email.js
+│   ├── email.test.js
 │   ├── orders.js
+│   ├── orders.test.js
+│   ├── reset-admin-password.js
 │   └── server.js
+│
 ├── database/
 │   ├── migrations/
 │   ├── checkout_schema.sql
-│   └── dazzle_boutique.sql
+│   ├── dazzle_boutique.sql
+│   ├── seed_demo_product_size_stock.sql
+│   └── seed_existing_product_size_stock.sql
+│
+├── docs/
+│   └── screenshots/
+│
 ├── frontend/
 │   ├── assets/
+│   │   └── images/
 │   ├── css/
+│   │   └── style.css
 │   ├── js/
-│   └── HTML pages
+│   │   ├── admin.js
+│   │   └── main.js
+│   └── ├── account-login.html
+├── account-register.html
+├── admin-dashboard.html
+├── admin-login.html
+├── cart.html
+├── checkout.html
+├── forgot-password.html
+├── index.html
+├── my-account.html
+├── order-confirmation.html
+├── order-tracking.html
+├── product-details.html
+├── reset-password.html
+└── shop.html
+│
 ├── .env.example
 ├── .gitignore
 ├── package.json
 ├── package-lock.json
 └── README.md
+```
+
+## System Architecture
+
+```mermaid
+flowchart TD
+    subgraph Client["Client Layer"]
+        Customer["Customer"]
+        Admin["Administrator"]
+        Storefront["Customer Website<br/>HTML, CSS, JavaScript"]
+        AdminUI["Admin Dashboard<br/>HTML, CSS, JavaScript"]
+    end
+
+    subgraph Backend["Backend Layer - Node.js"]
+        Server["HTTP Server"]
+        Accounts["Customer Accounts<br/>Authentication & Sessions"]
+        Orders["Orders & Checkout"]
+        AdminModule["Admin Management<br/>Order & COD Payments"]
+        Email["Email Notifications"]
+        DBModule["Database Module"]
+    end
+
+    MySQL[("MySQL Database")]
+    SMTP["SMTP Email Service"]
+
+    Customer --> Storefront
+    Admin --> AdminUI
+
+    Storefront -->|"HTTP API Requests"| Server
+    AdminUI -->|"HTTP API Requests"| Server
+
+    Server --> Accounts
+    Server --> Orders
+    Server --> AdminModule
+
+    Accounts --> DBModule
+    Orders --> DBModule
+    AdminModule --> DBModule
+
+    Accounts --> Email
+    Orders --> Email
+    AdminModule --> Email
+
+    DBModule -->|"mysql2"| MySQL
+    Email --> SMTP
 ```
 
 ## Getting Started
