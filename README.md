@@ -1,18 +1,17 @@
 # Dazzle the Sister's Boutique
 
-A full-stack e-commerce website developed as a BCA Minor Project.
+A full-stack e-commerce website developed as a BCA Minor Project for a women's ethnic wear boutique.
 
-## About the Project
+**Repository:** [dazzle-the-sisters-boutique](https://github.com/clausyneo/dazzle-the-sisters-boutique)
 
-Dazzle the Sister's Boutique is an online boutique shopping platform designed to showcase women's ethnic wear and simplify the online shopping and order-management process.
+## Project Overview
 
-The platform provides a customer-facing shopping experience and a separate administration panel for managing products, orders and COD payments.
+Dazzle the Sister's Boutique is an online shopping platform for women's ethnic wear. It provides a customer storefront and a separate admin dashboard for managing orders and COD payments.
 
 ## Features
 
 ### Customer
-- Customer registration and login
-- Customer profile management
+- Registration, login and profile management
 - Product catalogue and product details
 - Shopping cart and checkout
 - Cash on Delivery (COD)
@@ -21,36 +20,35 @@ The platform provides a customer-facing shopping experience and a separate admin
 - Password recovery
 
 ### Administration
-- Secure admin login
+- Secure admin authentication
 - Order management dashboard
-- Order status updates
+- Order status management
 - Customer order details
 - COD payment recording
-- Order and payment status management
+- Payment status tracking
 
 ## Technology Stack
 
-| Component | Technology |
+| Layer | Technology |
 |---|---|
 | Frontend | HTML, CSS, JavaScript |
 | Backend | Node.js |
 | Server | Node.js HTTP server |
 | Database | MySQL |
-| Database Driver | mysql2 |
-| Version Control | Git and GitHub |
+| Database driver | mysql2 |
+| Version control | Git and GitHub |
 
 ## Project Structure
 
 ```text
-minorproject/
+dazzle-the-sisters-boutique/
 ├── backend/
 │   ├── accounts.js
 │   ├── admin.js
 │   ├── database.js
 │   ├── email.js
 │   ├── orders.js
-│   ├── server.js
-│   └── tests
+│   └── server.js
 ├── database/
 │   ├── migrations/
 │   ├── checkout_schema.sql
@@ -60,19 +58,27 @@ minorproject/
 │   ├── css/
 │   ├── js/
 │   └── HTML pages
+├── .env.example
+├── .gitignore
 ├── package.json
 ├── package-lock.json
-├── .env.example
-└── .gitignore
+└── README.md
 ```
 
-## Installation and Setup
+## Getting Started
+
+### Prerequisites
+- Node.js
+- npm
+- MySQL Server
+- Visual Studio Code (recommended)
+- Live Server extension for frontend development
 
 ### 1. Clone the repository
 
 ```bash
-git clone YOUR_GITHUB_REPOSITORY_URL
-cd minorproject
+git clone https://github.com/clausyneo/dazzle-the-sisters-boutique.git
+cd dazzle-the-sisters-boutique
 ```
 
 ### 2. Install dependencies
@@ -83,13 +89,23 @@ npm install
 
 ### 3. Configure environment variables
 
-Copy `.env.example` to `.env` and enter your local MySQL and SMTP configuration.
+Create a local `.env` file by copying `.env.example`.
 
-Never commit your actual `.env` file.
+On Windows PowerShell:
 
-### 4. Configure MySQL
+```powershell
+Copy-Item .env.example .env
+```
 
-Create the `dazzle_boutique` database and execute the database schema and migration scripts in the appropriate order.
+Update the values in `.env` with your local MySQL and SMTP configuration.
+
+Never upload your actual `.env` file or share credentials publicly.
+
+### 4. Configure the database
+
+Create the `dazzle_boutique` database and execute the SQL setup files and migrations in the required order.
+
+The database directory contains the schema, migrations and product stock seed scripts. Review each script before executing it against an existing database.
 
 ### 5. Start the backend
 
@@ -97,23 +113,27 @@ Create the `dazzle_boutique` database and execute the database schema and migrat
 npm start
 ```
 
-### 6. Open the frontend
+The backend uses the configuration in `.env`.
 
-Use VS Code Live Server to open:
+### 6. Start the frontend
+
+Open `frontend/index.html` using the VS Code Live Server extension.
+
+The default frontend URL configured in the example environment is:
 
 ```text
-frontend/index.html
+http://127.0.0.1:5500/frontend/
 ```
 
 ## Testing
 
-Run the automated tests:
+Run automated tests:
 
 ```bash
 npm test
 ```
 
-Run the project checks:
+Run JavaScript syntax checks:
 
 ```bash
 npm run check
@@ -121,21 +141,19 @@ npm run check
 
 ## Project Scope
 
-This minor project focuses on readymade product shopping, customer accounts, COD checkout, order tracking and basic administration.
+The minor project focuses on readymade product shopping, customer accounts, COD checkout, order tracking, email notifications and basic administration.
 
-Advanced boutique operations such as custom stitching management, digital measurements and advanced inventory management are outside the current minor-project scope.
+Advanced boutique operations such as custom stitching management, digital measurement records, advanced inventory management and labour management are reserved for future development.
 
-## Project Status
+## Testing Status
 
-Core customer shopping, administration, order management and COD payment workflows have undergone manual end-to-end testing.
+The project has passed 94 automated tests and manual end-to-end testing of its core customer, order-management and COD payment workflows.
 
-## Academic Project
+## Academic Information
 
-**Degree:** Bachelor of Computer Applications (BCA)
-
-**Project:** Dazzle the Sister's Boutique
-
-**Project Type:** Minor Project
+- **Degree:** Bachelor of Computer Applications (BCA)
+- **Project:** Dazzle the Sister's Boutique
+- **Project Type:** Minor Project
 
 ---
 
