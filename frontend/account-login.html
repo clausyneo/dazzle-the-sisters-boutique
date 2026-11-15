@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sign in to your Dazzle The Sister's Boutique customer account.">
+  <title>Customer Login | Dazzle The Sister's Boutique</title>
+  <link rel="icon" type="image/png" href="assets/images/brand/dazzle-logo.png">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/main.js" defer></script>
+</head>
+<body>
+  <div class="announcement">A little tradition, a lot of you.</div>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Dazzle The Sister's Boutique home">
+      <img class="brand-logo" src="assets/images/brand/dazzle-logo.png" alt="">
+      <span class="brand-copy"><span class="brand-name">Dazzle</span><span class="brand-caption">THE SISTER'S BOUTIQUE</span></span>
+    </a>
+    <nav class="site-navigation" aria-label="Main navigation">
+      <a href="index.html#home" data-page="home">Home</a>
+      <a href="shop.html" data-page="shop">Shop</a>
+      <a href="index.html#custom-stitching" data-page="custom-stitching">Custom Stitching</a>
+      <a href="cart.html" data-page="cart">Cart <span class="cart-count" aria-label="items in cart">0</span></a>
+    </nav>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-panel" aria-haspopup="true">
+      <span class="menu-icon" aria-hidden="true"></span><span>Menu</span>
+    </button>
+    <nav class="menu-panel" id="menu-panel" aria-label="More pages" aria-hidden="true" inert>
+      <a href="index.html#home" data-page="home">Home</a>
+      <a href="shop.html" data-page="shop">Shop</a>
+      <a href="index.html#custom-stitching" data-page="custom-stitching">Custom Stitching</a>
+      <a href="cart.html" data-page="cart">Cart</a>
+      <a href="order-tracking.html" data-page="order-tracking">Track Order</a>
+      <a href="index.html#about" data-page="about">About</a>
+      <a href="index.html#contact" data-page="contact">Contact</a>
+    </nav>
+  </header>
+
+  <main class="account-auth-wrap">
+    <section class="account-card">
+      <p class="eyebrow">Welcome back</p>
+      <h1>Sign in to your account</h1>
+      <p>Sign in to view your account profile and order history.</p>
+      <form class="account-form" id="account-login-form">
+        <label for="account-identifier">Email or registered phone number</label>
+        <input id="account-identifier" name="identifier" type="text" autocomplete="username" maxlength="254" required>
+        <label for="account-password">Password</label>
+        <input id="account-password" name="password" type="password" autocomplete="current-password" maxlength="128" required>
+        <p class="form-message" id="account-form-message" role="status" aria-live="polite"></p>
+        <button class="button button-burgundy" type="submit">Sign In</button>
+      </form>
+      <p class="account-switch"><a href="forgot-password.html">Forgot Password?</a></p>
+      <p class="account-switch">New to Dazzle? <a href="account-register.html">Create an account</a></p>
+    </section>
+  </main>
+</body>
+</html>

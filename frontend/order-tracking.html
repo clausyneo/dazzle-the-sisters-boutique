@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Check the status of your Dazzle The Sister's Boutique order.">
+  <title>Track Your Order | Dazzle The Sister's Boutique</title>
+  <link rel="icon" type="image/png" href="assets/images/brand/dazzle-logo.png">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/main.js" defer></script>
+</head>
+<body>
+  <div class="announcement">A little tradition, a lot of you.</div>
+
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Dazzle The Sister's Boutique home">
+      <img class="brand-logo" src="assets/images/brand/dazzle-logo.png" alt="">
+      <span class="brand-copy">
+        <span class="brand-name">Dazzle</span>
+        <span class="brand-caption">THE SISTER'S BOUTIQUE</span>
+      </span>
+    </a>
+
+    <nav class="site-navigation" aria-label="Main navigation">
+      <a href="index.html#home" data-page="home">Home</a>
+      <a href="shop.html" data-page="shop">Shop</a>
+      <a href="index.html#custom-stitching" data-page="custom-stitching">Custom Stitching</a>
+      <a href="cart.html" data-page="cart">Cart <span class="cart-count" aria-label="items in cart">0</span></a>
+    </nav>
+
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-panel" aria-haspopup="true">
+      <span class="menu-icon" aria-hidden="true"></span>
+      <span>Menu</span>
+    </button>
+
+    <nav class="menu-panel" id="menu-panel" aria-label="More pages" aria-hidden="true" inert>
+      <a href="index.html#home" data-page="home">Home</a>
+      <a href="shop.html" data-page="shop">Shop</a>
+      <a href="index.html#custom-stitching" data-page="custom-stitching">Custom Stitching</a>
+      <a href="cart.html" data-page="cart">Cart</a>
+      <a href="order-tracking.html" data-page="order-tracking">Track Order</a>
+      <a href="index.html#about" data-page="about">About</a>
+      <a href="index.html#contact" data-page="contact">Contact</a>
+    </nav>
+  </header>
+
+  <main class="order-tracking-page">
+    <div class="cart-page-heading tracking-heading">
+      <p class="eyebrow">Your order, at a glance</p>
+      <h1>Track Your Order</h1>
+      <p>Enter the order number and phone number used at checkout. No account is needed.</p>
+    </div>
+
+    <section class="tracking-card" aria-labelledby="tracking-form-heading">
+      <h2 id="tracking-form-heading">Verify your order</h2>
+      <form id="tracking-form" class="tracking-form">
+        <label class="checkout-field" for="tracking-order-number">
+          <span>Order number</span>
+          <input id="tracking-order-number" name="orderNumber" type="text" maxlength="32" autocomplete="off" required>
+        </label>
+        <label class="checkout-field" for="tracking-phone">
+          <span>Registered phone number</span>
+          <input id="tracking-phone" name="phone" type="tel" maxlength="20" inputmode="tel" autocomplete="tel" required>
+        </label>
+        <button class="button button-burgundy tracking-submit" id="tracking-submit" type="submit">Find Order</button>
+      </form>
+      <p class="tracking-message" id="tracking-message" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="tracking-results" id="tracking-results" hidden aria-labelledby="tracking-results-heading" aria-live="polite">
+      <div class="tracking-card">
+        <p class="eyebrow">Order details</p>
+        <h2 id="tracking-results-heading">Your order</h2>
+        <dl class="tracking-details">
+          <div><dt>Order number</dt><dd id="tracking-result-number"></dd></div>
+          <div><dt>Order date</dt><dd id="tracking-result-date"></dd></div>
+          <div><dt>Total amount</dt><dd id="tracking-result-total"></dd></div>
+          <div><dt>Payment method</dt><dd id="tracking-result-payment-method"></dd></div>
+          <div><dt>Payment status</dt><dd id="tracking-result-payment-status"></dd></div>
+          <div><dt>Current order status</dt><dd id="tracking-result-order-status"></dd></div>
+        </dl>
+
+        <div class="tracking-cancelled" id="tracking-cancelled" hidden>
+          This order has been cancelled.
+        </div>
+
+        <section class="tracking-progress" id="tracking-progress" aria-labelledby="tracking-progress-heading">
+          <h3 id="tracking-progress-heading">Order progress</h3>
+          <ol class="order-timeline" id="order-timeline">
+            <li data-status="Order Placed">Order Placed</li>
+            <li data-status="Confirmed">Confirmed</li>
+            <li data-status="Processing">Processing</li>
+            <li data-status="Ready for Dispatch">Ready for Dispatch</li>
+            <li data-status="Shipped">Shipped</li>
+            <li data-status="Delivered">Delivered</li>
+          </ol>
+        </section>
+      </div>
+
+      <div class="tracking-card tracking-items-card">
+        <h3>Items in this order</h3>
+        <ul class="tracking-items" id="tracking-items"></ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-brand">
+      <a class="brand brand-footer" href="index.html">
+        <img class="brand-logo" src="assets/images/brand/dazzle-logo.png" alt="">
+        <span class="brand-copy">
+          <span class="brand-name">Dazzle</span>
+          <span class="brand-caption">THE SISTER'S BOUTIQUE</span>
+        </span>
+      </a>
+      <p>Ethnic wear and custom stitching, made with care.</p>
+    </div>
+    <div class="footer-contact">
+      <p class="eyebrow">Come say hello</p>
+      <p>Discover your next favourite outfit at Dazzle The Sister's Boutique.</p>
+      <p><a href="tel:+919990337224">+91 9990337224</a></p>
+      <p><a href="mailto:rajniverma8447@gmail.com">rajniverma8447@gmail.com</a></p>
+    </div>
+    <p class="copyright">&copy; 2026 Dazzle The Sister's Boutique. Made with care.</p>
+  </footer>
+</body>
+</html>

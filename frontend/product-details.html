@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Product details from Dazzle The Sister's Boutique.">
+  <title>Product Details | Dazzle The Sister's Boutique</title>
+  <link rel="icon" type="image/png" href="assets/images/brand/dazzle-logo.png">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/main.js" defer></script>
+</head>
+<body>
+  <div class="announcement">A little tradition, a lot of you.</div>
+
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Dazzle The Sister's Boutique home">
+      <img class="brand-logo" src="assets/images/brand/dazzle-logo.png" alt="">
+      <span class="brand-copy">
+        <span class="brand-name">Dazzle</span>
+        <span class="brand-caption">THE SISTER'S BOUTIQUE</span>
+      </span>
+    </a>
+
+    <nav class="site-navigation" aria-label="Main navigation">
+      <a href="index.html#home" data-page="home">Home</a>
+      <a href="shop.html" data-page="shop">Shop</a>
+      <a href="index.html#custom-stitching" data-page="custom-stitching">Custom Stitching</a>
+      <a href="cart.html" data-page="cart">Cart <span class="cart-count" aria-label="items in cart">0</span></a>
+    </nav>
+
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-panel" aria-haspopup="true">
+      <span class="menu-icon" aria-hidden="true"></span>
+      <span>Menu</span>
+    </button>
+
+    <nav class="menu-panel" id="menu-panel" aria-label="More pages" aria-hidden="true" inert>
+      <a href="index.html#home" data-page="home">Home</a>
+      <a href="shop.html" data-page="shop">Shop</a>
+      <a href="index.html#custom-stitching" data-page="custom-stitching">Custom Stitching</a>
+      <a href="cart.html" data-page="cart">Cart</a>
+      <a href="order-tracking.html" data-page="order-tracking">Track Order</a>
+      <a href="index.html#about" data-page="about">About</a>
+      <a href="index.html#contact" data-page="contact">Contact</a>
+    </nav>
+  </header>
+
+  <main class="product-details-wrap">
+    <a class="back-to-shop text-link" href="shop.html">← Back to Shop</a>
+    <article class="product-detail-card" id="product-details" hidden></article>
+    <section class="product-not-found" id="product-not-found" hidden>
+      <h1>Product not found</h1>
+      <p>Please return to the shop and choose a product to view its details.</p>
+      <a class="button button-burgundy" href="shop.html">Back to Shop</a>
+    </section>
+    <dialog class="size-guide-dialog" id="size-guide-dialog" aria-labelledby="size-guide-title">
+      <div class="size-guide-dialog-heading">
+        <h2 id="size-guide-title">Dazzle Boutique Recommended Size Guide</h2>
+        <button class="size-guide-close" id="close-size-guide" type="button" aria-label="Close size guide">×</button>
+      </div>
+      <div class="size-guide-dialog-content" id="size-guide-content"></div>
+    </dialog>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-brand">
+      <a class="brand brand-footer" href="index.html">
+        <img class="brand-logo" src="assets/images/brand/dazzle-logo.png" alt="">
+        <span class="brand-copy">
+          <span class="brand-name">Dazzle</span>
+          <span class="brand-caption">THE SISTER'S BOUTIQUE</span>
+        </span>
+      </a>
+      <p>Ethnic wear and custom stitching, made with care.</p>
+    </div>
+    <div class="footer-contact">
+      <p class="eyebrow">Come say hello</p>
+      <p>Discover your next favourite outfit at Dazzle The Sister's Boutique.</p>
+      <p><a href="tel:+919990337224">+91 9990337224</a></p>
+      <p><a href="mailto:rajniverma8447@gmail.com">rajniverma8447@gmail.com</a></p>
+    </div>
+    <p class="copyright">&copy; 2026 Dazzle The Sister's Boutique. Made with care.</p>
+  </footer>
+</body>
+</html>

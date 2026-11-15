@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Secure Dazzle The Sister's Boutique admin sign in.">
+  <title>Admin Login | Dazzle The Sister's Boutique</title>
+  <link rel="icon" type="image/png" href="assets/images/brand/dazzle-logo.png">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/admin.js" defer></script>
+</head>
+<body class="admin-body">
+  <main class="admin-login-wrap">
+    <section class="admin-card admin-login-card">
+      <a class="brand admin-brand" href="index.html" aria-label="Dazzle Boutique home">
+        <img class="brand-logo" src="assets/images/brand/dazzle-logo.png" alt="">
+        <span class="brand-copy"><span class="brand-name">Dazzle</span><span class="brand-caption">THE SISTER'S BOUTIQUE</span></span>
+      </a>
+      <p class="eyebrow">Private access</p>
+      <h1>Admin sign in</h1>
+      <p>Sign in to manage boutique orders.</p>
+      <form class="account-form" id="admin-login-form">
+        <label for="admin-username">Username or email</label>
+        <input id="admin-username" name="username" type="text" autocomplete="username" maxlength="254" required>
+        <label for="admin-password">Password</label>
+        <input id="admin-password" name="password" type="password" autocomplete="current-password" maxlength="128" required>
+        <p class="form-message" id="admin-login-message" role="status" aria-live="polite"></p>
+        <button class="button button-burgundy" type="submit">Sign In</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

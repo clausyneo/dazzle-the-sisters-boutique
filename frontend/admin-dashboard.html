@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dazzle Boutique admin order dashboard.">
+  <title>Admin Dashboard | Dazzle The Sister's Boutique</title>
+  <link rel="icon" type="image/png" href="assets/images/brand/dazzle-logo.png">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/admin.js" defer></script>
+</head>
+<body class="admin-body">
+  <header class="admin-header">
+    <a class="brand admin-brand" href="index.html" aria-label="Dazzle Boutique home">
+      <img class="brand-logo" src="assets/images/brand/dazzle-logo.png" alt="">
+      <span class="brand-copy"><span class="brand-name">Dazzle</span><span class="brand-caption">THE SISTER'S BOUTIQUE</span></span>
+    </a>
+    <div class="admin-header-actions">
+      <span id="admin-identity">Admin</span>
+      <button class="button button-light" id="admin-logout" type="button">Log out</button>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <div class="admin-page-heading">
+      <p class="eyebrow">Boutique management</p>
+      <h1>Order dashboard</h1>
+      <p>Review orders and update their fulfilment status.</p>
+    </div>
+    <p class="admin-message" id="admin-message" role="status" aria-live="polite"></p>
+
+    <section class="admin-summary-grid" aria-label="Order summary">
+      <article class="admin-card admin-summary-card">
+        <h2>Total Orders</h2><p id="summary-total">—</p>
+      </article>
+      <article class="admin-card admin-summary-card">
+        <h2>Pending Orders</h2><p id="summary-pending">—</p>
+      </article>
+      <article class="admin-card admin-summary-card">
+        <h2>Completed Orders</h2><p id="summary-completed">—</p>
+      </article>
+      <article class="admin-card admin-summary-card">
+        <h2>Total Order Value</h2><p id="summary-value">—</p>
+        <small>Excludes cancelled orders; not collected revenue or profit.</small>
+      </article>
+    </section>
+
+    <section class="admin-card admin-orders-panel">
+      <div class="admin-panel-heading">
+        <div><p class="eyebrow">Fulfilment</p><h2>Orders</h2></div>
+      </div>
+      <form class="admin-filters" id="admin-filter-form">
+        <label>Order number
+          <input name="search" type="search" maxlength="32" placeholder="Search order number">
+        </label>
+        <label>Order status
+          <select name="status" id="admin-status-filter">
+            <option value="">All statuses</option>
+          </select>
+        </label>
+        <label>From date
+          <input name="from" type="date">
+        </label>
+        <label>To date
+          <input name="to" type="date">
+        </label>
+        <div class="admin-filter-actions">
+          <button class="button button-burgundy" type="submit">Apply filters</button>
+          <button class="button button-light" id="admin-clear-filters" type="button">Clear</button>
+        </div>
+      </form>
+      <p class="admin-table-message" id="admin-orders-message" role="status" aria-live="polite"></p>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Order</th><th>Customer</th><th>Date</th><th>Total</th>
+              <th>Payment</th><th>Payment status</th><th>Order status</th><th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="admin-orders-body"></tbody>
+        </table>
+      </div>
+      <nav class="admin-pagination" aria-label="Order pages">
+        <button class="button button-light" id="admin-previous-page" type="button">Previous</button>
+        <span id="admin-page-label">Page 1</span>
+        <button class="button button-light" id="admin-next-page" type="button">Next</button>
+      </nav>
+    </section>
+
+    <section class="admin-card admin-order-detail" id="admin-order-detail" aria-live="polite" hidden>
+      <div class="admin-panel-heading">
+        <div><p class="eyebrow">Order information</p><h2 id="admin-detail-title">Order details</h2></div>
+        <button class="button button-light" id="admin-close-detail" type="button">Close</button>
+      </div>
+      <p class="admin-detail-message" id="admin-detail-message" role="status"></p>
+      <div class="admin-detail-grid" id="admin-detail-content"></div>
+      <form class="admin-status-form" id="admin-status-form">
+        <label for="admin-new-status">Update order status</label>
+        <select id="admin-new-status" name="orderStatus"></select>
+        <button class="button button-burgundy" type="submit">Save status</button>
+        <button
+          class="button button-burgundy"
+          id="admin-record-cod-payment"
+          type="button"
+          hidden
+          disabled
+        >Record COD Payment</button>
+        <button
+          class="button button-light"
+          id="admin-mark-delivered"
+          type="button"
+          hidden
+          disabled
+        >Mark as Delivered</button>
+      </form>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Product</th><th>Size</th><th>Quantity</th><th>Unit price</th><th>Subtotal</th></tr></thead>
+          <tbody id="admin-items-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
