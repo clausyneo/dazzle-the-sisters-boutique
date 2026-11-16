@@ -42,7 +42,10 @@ const {
 } = require("./admin");
 
 const port = Number(process.env.PORT || 3000);
-const allowedOrigin = "http://127.0.0.1:5500";
+const localFrontendOrigins = [
+  "http://127.0.0.1:5500",
+  "http://localhost:5500"
+];
 const allowedMethods = "GET, POST, PATCH, OPTIONS";
 const allowedHeaders = "Content-Type, Idempotency-Key";
 
@@ -62,10 +65,10 @@ async function sendNotificationSafely(sender, message, label) {
   }
 }
 
-function addCorsHeaders(request, response) {
+function addCorsHeaders(request, response, allowedOrigins) {
   response.setHeader("Vary", "Origin");
-  if (request.headers.origin === allowedOrigin) {
-    response.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+  if (allowedOrigins.has(request.headers.origin)) {
+    response.setHeader("Access-Control-Allow-Origin", request.headers.origin);
     response.setHeader("Access-Control-Allow-Methods", allowedMethods);
     response.setHeader("Access-Control-Allow-Headers", allowedHeaders);
     response.setHeader("Access-Control-Allow-Credentials", "true");
@@ -91,6 +94,10 @@ function isAllowedPreflight(request) {
 function createServer(options = {}) {
   const databasePool = options.pool || pool;
   const checkDatabaseConnection = options.testDatabaseConnection || testDatabaseConnection;
+  const allowedOrigins = new Set([
+    ...localFrontendOrigins,
+    options.frontendOrigin || process.env.FRONTEND_ORIGIN
+  ].filter(Boolean));
   const trackingLimit = Number.isSafeInteger(options.trackingLimit) && options.trackingLimit > 0
     ? options.trackingLimit
     : 10;
@@ -152,13 +159,13 @@ function createServer(options = {}) {
   }
 
   function requireAccountOrigin(request, response) {
-    if (request.headers.origin === allowedOrigin) return true;
+    if (allowedOrigins.has(request.headers.origin)) return true;
     sendJson(response, 403, { success: false, message: "This account request is not allowed." });
     return false;
   }
 
   function requireAdminOrigin(request, response) {
-    if (request.headers.origin === allowedOrigin) return true;
+    if (allowedOrigins.has(request.headers.origin)) return true;
     sendJson(response, 403, { success: false, message: "This admin request is not allowed." });
     return false;
   }
@@ -199,11 +206,11 @@ function createServer(options = {}) {
 
   return http.createServer(async (request, response) => {
     const requestUrl = new URL(request.url, "http://localhost");
-    addCorsHeaders(request, response);
+    addCorsHeaders(request, response, allowedOrigins);
 
     if (request.method === "OPTIONS") {
       if (!requestUrl.pathname.startsWith("/api/") ||
-          request.headers.origin !== allowedOrigin ||
+          !allowedOrigins.has(request.headers.origin) ||
           !isAllowedPreflight(request)) {
         sendJson(response, 403, { status: "error", message: "CORS preflight is not allowed." });
         return;
