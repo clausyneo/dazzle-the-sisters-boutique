@@ -1,4 +1,5 @@
 const http = require("node:http");
+const fs = require("node:fs");
 const { pool, testDatabaseConnection } = require("./database");
 const {
   createOrder,
@@ -579,6 +580,23 @@ function createServer(options = {}) {
 
     if (requestUrl.pathname === "/api/status") {
       sendJson(response, 200, { status: "ok", message: "Dazzle Boutique API is running." });
+      return;
+    }
+
+    if (requestUrl.pathname === "/api/deployment-check" && request.method === "GET") {
+      const caPath = process.env.DB_SSL_CA_PATH;
+      sendJson(response, 200, {
+        status: "ok",
+        checks: {
+          dbSslCaPathSet: Boolean(caPath),
+          dbSslCaFileExists: Boolean(caPath && fs.existsSync(caPath)),
+          dbHostSet: Boolean(process.env.DB_HOST),
+          dbUserSet: Boolean(process.env.DB_USER),
+          dbPasswordSet: Boolean(process.env.DB_PASSWORD),
+          dbNameSet: Boolean(process.env.DB_NAME),
+          nodeEnvProduction: process.env.NODE_ENV === "production"
+        }
+      });
       return;
     }
 
