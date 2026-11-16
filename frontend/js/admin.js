@@ -1,4 +1,4 @@
-const ADMIN_API_URL = "http://127.0.0.1:3000";
+const ADMIN_API_URL = window.DAZZLE_CONFIG.API_BASE_URL;
 const ADMIN_ORDER_STATUSES = [
   "Order Placed",
   "Confirmed",

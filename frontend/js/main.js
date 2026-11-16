@@ -1,7 +1,7 @@
 const menuButton = document.querySelector(".menu-toggle");
 const menuPanel = document.querySelector("#menu-panel");
 const siteHeader = document.querySelector(".site-header");
-const API_BASE_URL = "http://127.0.0.1:3000";
+const API_BASE_URL = window.DAZZLE_CONFIG.API_BASE_URL;
 
 if (menuButton && menuPanel && siteHeader) {
   function setMenuOpen(isOpen) {
