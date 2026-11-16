@@ -587,7 +587,12 @@ function createServer(options = {}) {
         await checkDatabaseConnection();
         sendJson(response, 200, { status: "ok", message: "MySQL is connected." });
       } catch (error) {
-        console.error("MySQL connection check failed:", error.code || "database error");
+        console.error("MySQL connection check failed:", {
+          code: error.code,
+          errno: error.errno,
+          sqlState: error.sqlState,
+          message: error.sqlMessage || error.message
+        });
         sendJson(response, 503, {
           status: "error",
           message: "MySQL is not connected. Check the MySQL service and .env settings."
