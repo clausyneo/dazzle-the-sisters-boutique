@@ -89,12 +89,14 @@ function parseAdminToken(request) {
 
 function adminSessionCookie(token, isProduction = process.env.NODE_ENV === "production") {
   const security = isProduction ? "; Secure" : "";
-  return `${ADMIN_COOKIE_NAME}=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${SESSION_LIFETIME_SECONDS}${security}`;
+  const sameSite = isProduction ? "None" : "Strict";
+  return `${ADMIN_COOKIE_NAME}=${token}; HttpOnly; SameSite=${sameSite}; Path=/; Max-Age=${SESSION_LIFETIME_SECONDS}${security}`;
 }
 
 function clearAdminSessionCookie(isProduction = process.env.NODE_ENV === "production") {
   const security = isProduction ? "; Secure" : "";
-  return `${ADMIN_COOKIE_NAME}=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0${security}`;
+  const sameSite = isProduction ? "None" : "Strict";
+  return `${ADMIN_COOKIE_NAME}=; HttpOnly; SameSite=${sameSite}; Path=/; Max-Age=0${security}`;
 }
 
 async function createAdminSession(executor, adminId) {
@@ -566,7 +568,6 @@ async function updateAdminOrderPaymentStatus(pool, rawOrderId) {
     }
   }
 }
-
 module.exports = {
   ADMIN_COOKIE_NAME,
   ORDER_STATUSES,

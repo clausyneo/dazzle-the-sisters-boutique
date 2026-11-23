@@ -2,11 +2,87 @@ const assert = require("node:assert/strict");
 const { createHash, scryptSync } = require("node:crypto");
 const http = require("node:http");
 const test = require("node:test");
-const { createAdminAccount, resetAdminPassword } = require("./admin");
+const {
+  adminSessionCookie,
+  clearAdminSessionCookie,
+  createAdminAccount,
+  resetAdminPassword
+} = require("./admin");
 const { createServer } = require("./server");
 
 const origin = "http://127.0.0.1:5500";
 const password = "admin-pass-2026";
+
+test("admin session cookies support cross-origin HTTPS production", () => {
+  assert.equal(
+    adminSessionCookie("token", true),
+    "dazzle_admin_session=token; HttpOnly; SameSite=None; Path=/; Max-Age=28800; Secure"
+  );
+  assert.equal(
+    clearAdminSessionCookie(true),
+    "dazzle_admin_session=; HttpOnly; SameSite=None; Path=/; Max-Age=0; Secure"
+  );
+});
+
+test("admin session cookies retain local development settings and expiry", () => {
+  assert.equal(
+    adminSessionCookie("token", false),
+    "dazzle_admin_session=token; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800"
+  );
+  assert.equal(
+    clearAdminSessionCookie(false),
+    "dazzle_admin_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0"
+  );
+});
+
+test("admin and configured customer frontends receive credentialed CORS access", async (t) => {
+  const customerOrigin = "https://shop.example.com";
+  const adminOrigin = "https://dazzle-admin.onrender.com";
+  const client = await startServer(t, undefined, { frontendOrigin: customerOrigin });
+  await createAdmin(client.pool);
+  const adminPreflight = await client.request(
+    "OPTIONS",
+    "/api/admin/login",
+    undefined,
+    undefined,
+    adminOrigin,
+    {
+      "access-control-request-method": "POST",
+      "access-control-request-headers": "content-type"
+    }
+  );
+  const adminLogin = await client.request(
+    "POST",
+    "/api/admin/login",
+    { username: "boutiqueadmin", password },
+    undefined,
+    adminOrigin
+  );
+  const adminSession = await client.request(
+    "GET",
+    "/api/admin/me",
+    undefined,
+    cookieFrom(adminLogin),
+    adminOrigin
+  );
+  const customerResponse = await client.request("GET", "/api/status", undefined, undefined, customerOrigin);
+  const unrelatedResponse = await client.request(
+    "GET", "/api/status", undefined, undefined, "https://unapproved.example"
+  );
+
+  assert.equal(adminPreflight.status, 204);
+  assert.equal(adminPreflight.headers["access-control-allow-origin"], adminOrigin);
+  assert.equal(adminPreflight.headers["access-control-allow-credentials"], "true");
+  assert.equal(adminLogin.status, 200);
+  assert.equal(adminLogin.headers["access-control-allow-origin"], adminOrigin);
+  assert.equal(adminLogin.headers["access-control-allow-credentials"], "true");
+  assert.equal(adminSession.status, 200);
+  assert.equal(adminSession.headers["access-control-allow-origin"], adminOrigin);
+  assert.equal(adminSession.headers["access-control-allow-credentials"], "true");
+  assert.equal(customerResponse.headers["access-control-allow-origin"], customerOrigin);
+  assert.equal(customerResponse.headers["access-control-allow-credentials"], "true");
+  assert.equal(unrelatedResponse.headers["access-control-allow-origin"], undefined);
+});
 
 function createAdminPool() {
   const state = {
@@ -253,11 +329,12 @@ async function startServer(t, pool = createAdminPool(), options = {}) {
   }));
   const port = server.address().port;
 
-  async function request(method, path, body, cookie, requestOrigin = origin) {
+  async function request(method, path, body, cookie, requestOrigin = origin, extraHeaders = {}) {
     return new Promise((resolve, reject) => {
       const content = body === undefined ? undefined : JSON.stringify(body);
       const headers = {};
       if (requestOrigin) headers.origin = requestOrigin;
+      Object.assign(headers, extraHeaders);
       if (content !== undefined) {
         headers["content-type"] = "application/json";
         headers["content-length"] = Buffer.byteLength(content);
