@@ -449,15 +449,17 @@ function createServer(options = {}) {
             ? await registerCustomer(databasePool, body)
             : await loginCustomer(databasePool, body);
           if (path.endsWith("/login")) {
-            await sendNotificationSafely(
-              options.sendCustomerLoginNotification || sendCustomerLoginNotification,
-              {
-                email: result.customer.email,
-                loginAt: new Date().toISOString()
-              },
-              "Customer login"
-            );
-          }
+  void sendNotificationSafely(
+    options.sendCustomerLoginNotification || sendCustomerLoginNotification,
+    {
+      email: result.customer.email,
+      loginAt: new Date().toISOString()
+    },
+    "Customer login"
+  ).catch((error) => {
+    console.error("Customer login notification failed:", error.code || "unexpected error");
+  });
+}
           sendJson(response, 200, {
             success: true,
             customer: result.customer
@@ -632,8 +634,8 @@ function createServer(options = {}) {
 
 if (require.main === module) {
   const server = createServer();
-  server.listen(port, () => {
-    console.log(`Dazzle Boutique API is running at http://localhost:${port}`);
+  server.listen(port, "0.0.0.0", () => {
+    console.log(`Dazzle Boutique API is listening on port ${port}`);
   });
 }
 
