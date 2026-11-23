@@ -49,8 +49,7 @@ async function sendEmailMessage(config, message, createTransport, fetchImpl = gl
         sender: config.sender,
         to: [{ email: message.to }],
         subject: message.subject,
-        textContent: message.text,
-        ...(message.html ? { htmlContent: message.html } : {})
+        ...(message.html ? { htmlContent: message.html } : { textContent: message.text })
       }),
       signal: AbortSignal.timeout(15000)
     });
