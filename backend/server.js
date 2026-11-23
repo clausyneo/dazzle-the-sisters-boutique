@@ -22,7 +22,7 @@ const {
   updateCustomerProfile
 } = require("./accounts");
 const {
-  isSmtpConfigured,
+  isEmailConfigured,
   sendCustomerPasswordResetEmail,
   sendCustomerLoginNotification,
   sendOrderConfirmationEmail,
@@ -412,7 +412,7 @@ function createServer(options = {}) {
             databasePool,
             await readJsonBody(request),
             options.sendPasswordResetEmail || sendCustomerPasswordResetEmail,
-            options.passwordResetEmailConfigured ?? isSmtpConfigured()
+            options.passwordResetEmailConfigured ?? isEmailConfigured()
           );
           sendJson(response, 200, result);
           return;
