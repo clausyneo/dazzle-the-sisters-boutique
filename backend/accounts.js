@@ -228,13 +228,7 @@ const passwordMatches =
   storedHash.length === submittedHash.length &&
   timingSafeEqual(storedHash, submittedHash);
 
-console.info("[Customer Login Diagnostic]", {
-  customerFound: Boolean(customer),
-  saltLength: salt.length,
-  storedHashLength: storedHash.length,
-  submittedHashLength: submittedHash.length,
-  passwordMatches
-});
+  
 
 if (!customer || !passwordMatches) {
   throw new RequestError(401, "The email/phone or password is incorrect.");
