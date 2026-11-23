@@ -2,7 +2,9 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 const {
   getSmtpConfiguration,
+  getBrevoConfiguration,
   isSmtpConfigured,
+  isEmailConfigured,
   sendCustomerPasswordResetEmail,
   sendCustomerLoginNotification,
   sendOrderConfirmationEmail,
@@ -129,4 +131,49 @@ test("order notification emails include order and item summaries", async () => {
   assert.match(messages[0].text, /Meera Floral Kurti, size M, quantity 1, subtotal INR 1499\.00/);
   assert.match(messages[1].text, /Previous status: Shipped/);
   assert.match(messages[1].text, /Status: Delivered/);
+});
+
+
+const brevoEnvironment = {
+  BREVO_API_KEY: "test-brevo-api-key",
+  BREVO_SENDER_EMAIL: "verified@example.com",
+  BREVO_SENDER_NAME: "Dazzle the Sister's Boutique",
+  FRONTEND_BASE_URL: "https://shop.example.com/frontend/"
+};
+
+test("Brevo configuration is accepted for HTTPS email delivery", () => {
+  assert.equal(isEmailConfigured(brevoEnvironment), true);
+  assert.equal(isEmailConfigured({ ...brevoEnvironment, BREVO_API_KEY: "" }), false);
+  assert.equal(getBrevoConfiguration(brevoEnvironment).sender.email, "verified@example.com");
+});
+
+test("Brevo sends password reset email through the HTTPS API", async () => {
+  let request;
+  await sendCustomerPasswordResetEmail(
+    { email: "customer@example.com", token: "A".repeat(43) },
+    brevoEnvironment,
+    undefined,
+    async (url, options) => {
+      request = { url, options, body: JSON.parse(options.body) };
+      return { ok: true, async json() { return { messageId: "test-message-id" }; } };
+    }
+  );
+  assert.equal(request.url, "https://api.brevo.com/v3/smtp/email");
+  assert.equal(request.options.method, "POST");
+  assert.equal(request.options.headers["api-key"], brevoEnvironment.BREVO_API_KEY);
+  assert.equal(request.body.sender.email, brevoEnvironment.BREVO_SENDER_EMAIL);
+  assert.equal(request.body.to[0].email, "customer@example.com");
+  assert.match(request.body.textContent, /reset-password\.html#token=/);
+});
+
+test("Brevo API errors are reported with their HTTP status", async () => {
+  await assert.rejects(
+    sendCustomerLoginNotification(
+      { email: "customer@example.com", loginAt: "2026-03-20T12:34:56.000Z" },
+      brevoEnvironment,
+      undefined,
+      async () => ({ ok: false, status: 401, async text() { return "unauthorized"; } })
+    ),
+    (error) => error.code === "BREVO_HTTP_401"
+  );
 });
