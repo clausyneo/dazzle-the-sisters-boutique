@@ -143,12 +143,14 @@ function parseSessionToken(request) {
 
 function sessionCookie(token, isProduction = process.env.NODE_ENV === "production") {
   const security = isProduction ? "; Secure" : "";
-  return `${SESSION_COOKIE_NAME}=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${SESSION_LIFETIME_SECONDS}${security}`;
+  const sameSite = isProduction ? "None" : "Lax";
+  return `${SESSION_COOKIE_NAME}=${token}; HttpOnly; SameSite=${sameSite}; Path=/; Max-Age=${SESSION_LIFETIME_SECONDS}${security}`;
 }
 
 function clearSessionCookie(isProduction = process.env.NODE_ENV === "production") {
   const security = isProduction ? "; Secure" : "";
-  return `${SESSION_COOKIE_NAME}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${security}`;
+  const sameSite = isProduction ? "None" : "Lax";
+  return `${SESSION_COOKIE_NAME}=; HttpOnly; SameSite=${sameSite}; Path=/; Max-Age=0${security}`;
 }
 
 async function createSession(executor, customerId) {
@@ -210,14 +212,33 @@ async function loginCustomer(pool, body) {
     [login.identifier]
   );
   const customer = rows[0];
-  const salt = customer ? Buffer.from(customer.password_salt, "hex") : DUMMY_SALT;
-  const storedHash = customer ? Buffer.from(customer.password_hash, "hex") : DUMMY_HASH;
-  const submittedHash = await scrypt(login.password, salt, PASSWORD_BYTES);
-  if (!customer ||
-      storedHash.length !== submittedHash.length ||
-      !timingSafeEqual(storedHash, submittedHash)) {
-    throw new RequestError(401, "The email/phone or password is incorrect.");
-  }
+
+const salt = customer
+  ? Buffer.from(customer.password_salt, "hex")
+  : DUMMY_SALT;
+
+const storedHash = customer
+  ? Buffer.from(customer.password_hash, "hex")
+  : DUMMY_HASH;
+
+const submittedHash = await scrypt(login.password, salt, PASSWORD_BYTES);
+
+const passwordMatches =
+  Boolean(customer) &&
+  storedHash.length === submittedHash.length &&
+  timingSafeEqual(storedHash, submittedHash);
+
+console.info("[Customer Login Diagnostic]", {
+  customerFound: Boolean(customer),
+  saltLength: salt.length,
+  storedHashLength: storedHash.length,
+  submittedHashLength: submittedHash.length,
+  passwordMatches
+});
+
+if (!customer || !passwordMatches) {
+  throw new RequestError(401, "The email/phone or password is incorrect.");
+}
 
   const connection = await pool.getConnection();
   try {
