@@ -94,10 +94,15 @@ function isAllowedPreflight(request) {
 function createServer(options = {}) {
   const databasePool = options.pool || pool;
   const checkDatabaseConnection = options.testDatabaseConnection || testDatabaseConnection;
+  const configuredFrontendOrigins = [
+    options.frontendOrigin || process.env.FRONTEND_ORIGIN,
+    process.env.ADMIN_FRONTEND_ORIGIN
+  ].flatMap((value) => (value || "").split(",").map((origin) => origin.trim()))
+    .filter(Boolean);
   const allowedOrigins = new Set([
     ...localFrontendOrigins,
-    options.frontendOrigin || process.env.FRONTEND_ORIGIN
-  ].filter(Boolean));
+    ...configuredFrontendOrigins
+  ]);
   const trackingLimit = Number.isSafeInteger(options.trackingLimit) && options.trackingLimit > 0
     ? options.trackingLimit
     : 10;
