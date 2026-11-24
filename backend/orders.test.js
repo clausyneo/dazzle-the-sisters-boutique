@@ -947,7 +947,7 @@ test("allowed origin receives CORS headers on API responses and errors", async (
 test("disallowed origin is not granted CORS access", async (t) => {
   const client = await withServer(t);
   const response = await client.request("GET", "/api/status", undefined, {
-    origin: "http://localhost:5500"
+    origin: "https://unapproved.example"
   });
 
   assert.equal(response.status, 200);

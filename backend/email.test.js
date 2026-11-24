@@ -74,7 +74,7 @@ test("SMTP delivery errors are propagated for safe handling by the caller", asyn
       { email: "customer@example.com", token: "A".repeat(43) },
       {}
     ),
-    (error) => error.code === "SMTP_NOT_CONFIGURED"
+    (error) => error.code === "EMAIL_NOT_CONFIGURED"
   );
 });
 
@@ -163,7 +163,8 @@ test("Brevo sends password reset email through the HTTPS API", async () => {
   assert.equal(request.options.headers["api-key"], brevoEnvironment.BREVO_API_KEY);
   assert.equal(request.body.sender.email, brevoEnvironment.BREVO_SENDER_EMAIL);
   assert.equal(request.body.to[0].email, "customer@example.com");
-  assert.match(request.body.textContent, /reset-password\.html#token=/);
+  assert.match(request.body.htmlContent, /reset-password\.html#token=/);
+  assert.equal(request.body.textContent, undefined);
 });
 
 test("Brevo API errors are reported with their HTTP status", async () => {

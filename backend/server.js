@@ -96,7 +96,7 @@ function createServer(options = {}) {
   const checkDatabaseConnection = options.testDatabaseConnection || testDatabaseConnection;
   const configuredFrontendOrigins = [
     options.frontendOrigin || process.env.FRONTEND_ORIGIN,
-    process.env.ADMIN_FRONTEND_ORIGIN
+    options.adminFrontendOrigin || process.env.ADMIN_FRONTEND_ORIGIN
   ].flatMap((value) => (value || "").split(",").map((origin) => origin.trim()))
     .filter(Boolean);
   const allowedOrigins = new Set([
