@@ -38,7 +38,10 @@ test("admin session cookies retain local development settings and expiry", () =>
 test("admin and configured customer frontends receive credentialed CORS access", async (t) => {
   const customerOrigin = "https://shop.example.com";
   const adminOrigin = "https://dazzle-admin.onrender.com";
-  const client = await startServer(t, undefined, { frontendOrigin: customerOrigin });
+  const client = await startServer(t, undefined, {
+    frontendOrigin: customerOrigin,
+    adminFrontendOrigin: adminOrigin
+  });
   await createAdmin(client.pool);
   const adminPreflight = await client.request(
     "OPTIONS",
