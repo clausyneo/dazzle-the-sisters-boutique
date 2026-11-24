@@ -311,6 +311,7 @@ async function getDashboardSummary(pool) {
 async function listAdminOrders(pool, parameters) {
   const page = validatePage(parameters.get("page"));
   const pageSize = validatePageSize(parameters.get("pageSize"));
+  const offset = (page - 1) * pageSize;
   const { where, values } = buildOrderFilters(parameters);
   const [countRows] = await pool.execute(
     `SELECT COUNT(*) AS total
@@ -319,15 +320,14 @@ async function listAdminOrders(pool, parameters) {
     values
   );
   const total = Number(countRows[0].total);
-  const offset = (page - 1) * pageSize;
   const [rows] = await pool.execute(
     `SELECT order_id, order_number, customer_name, created_at, total_amount,
             payment_method, payment_status, order_status
      FROM orders
      ${where}
      ORDER BY created_at DESC, order_id DESC
-     LIMIT ? OFFSET ?`,
-    [...values, pageSize, offset]
+     LIMIT ${pageSize} OFFSET ${offset}`,
+    values
   );
   return {
     orders: rows.map((row) => ({

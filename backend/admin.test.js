@@ -257,12 +257,13 @@ function createAdminPool() {
     if (sql.includes("COUNT(*) AS total") && sql.includes("FROM orders")) {
       return [[{ total: filterOrders(sql, parameters).length }], []];
     }
-    if (sql.includes("FROM orders") && sql.includes("LIMIT ? OFFSET ?")) {
+    const pagination = sql.match(/\bLIMIT (\d+) OFFSET (\d+)\b/);
+    if (sql.includes("FROM orders") && pagination) {
       const rows = filterOrders(sql, parameters).sort((left, right) =>
         right.created_at.localeCompare(left.created_at)
       );
-      const pageSize = parameters[parameters.length - 2];
-      const offset = parameters[parameters.length - 1];
+      const pageSize = Number(pagination[1]);
+      const offset = Number(pagination[2]);
       return [rows.slice(offset, offset + pageSize).map((order) => ({ ...order })), []];
     }
     throw new Error(`Unexpected admin SQL: ${sql}`);
@@ -548,10 +549,28 @@ test("admin dashboard summary counts orders and excludes cancelled value", async
   });
 });
 
-test("admin order listing includes guest and account orders, filters and paginates safely", async (t) => {
+test("admin order listing defaults, paginates, filters and returns empty results safely", async (t) => {
   const client = await startServer(t);
   await createAdmin(client.pool);
   const cookie = cookieFrom(await login(client));
+
+  const defaultListing = await client.request("GET", "/api/admin/orders", undefined, cookie);
+  assert.equal(defaultListing.status, 200);
+  assert.deepEqual(parseBody(defaultListing).orders.map((order) => order.orderNumber), [
+    "DB-CANCEL-003", "DB-ACCOUNT-002", "DB-GUEST-001"
+  ]);
+  assert.deepEqual(parseBody(defaultListing).pagination, {
+    page: 1,
+    pageSize: 20,
+    total: 3,
+    totalPages: 1
+  });
+  const defaultQuery = client.pool.state.queries.find((entry) =>
+    entry.sql.includes("ORDER BY created_at DESC")
+  );
+  assert.match(defaultQuery.sql, /\bLIMIT 20 OFFSET 0\b/);
+  assert.deepEqual(defaultQuery.parameters, []);
+
   const firstPage = await client.request(
     "GET", "/api/admin/orders?page=1&pageSize=2", undefined, cookie
   );
@@ -561,22 +580,64 @@ test("admin order listing includes guest and account orders, filters and paginat
   ]);
   assert.equal(parseBody(firstPage).pagination.total, 3);
 
+  const secondPage = await client.request(
+    "GET", "/api/admin/orders?page=2&pageSize=2", undefined, cookie
+  );
+  assert.equal(secondPage.status, 200);
+  assert.deepEqual(parseBody(secondPage).orders.map((order) => order.orderNumber), ["DB-GUEST-001"]);
+  assert.deepEqual(parseBody(secondPage).pagination, {
+    page: 2,
+    pageSize: 2,
+    total: 3,
+    totalPages: 2
+  });
+  const paginatedQuery = client.pool.state.queries.filter((entry) =>
+    entry.sql.includes("ORDER BY created_at DESC")
+  ).at(-1);
+  assert.match(paginatedQuery.sql, /\bLIMIT 2 OFFSET 2\b/);
+  assert.deepEqual(paginatedQuery.parameters, []);
+
   const guest = await client.request(
     "GET", "/api/admin/orders?search=GUEST-001&status=Order%20Placed&from=2026-03-10&to=2026-03-10",
     undefined, cookie
   );
   assert.equal(guest.status, 200);
   assert.deepEqual(parseBody(guest).orders.map((order) => order.orderNumber), ["DB-GUEST-001"]);
-  const listingQuery = client.pool.state.queries.find((entry) =>
-    entry.sql.includes("LIMIT ? OFFSET ?")
+  const listingQuery = client.pool.state.queries.filter((entry) =>
+    entry.sql.includes("ORDER BY created_at DESC")
+  ).at(-1);
+  assert.match(listingQuery.sql, /order_number LIKE \?/);
+  assert.match(listingQuery.sql, /order_status = \?/);
+  assert.match(listingQuery.sql, /created_at >= \?/);
+  assert.match(listingQuery.sql, /created_at < DATE_ADD\(\?, INTERVAL 1 DAY\)/);
+  assert.match(listingQuery.sql, /\bLIMIT 20 OFFSET 0\b/);
+  assert.deepEqual(listingQuery.parameters, [
+    "%GUEST-001%",
+    "Order Placed",
+    "2026-03-10",
+    "2026-03-10"
+  ]);
+
+  const empty = await client.request(
+    "GET", "/api/admin/orders?search=NOT-FOUND", undefined, cookie
   );
-  assert.ok(listingQuery.sql.includes("LIMIT ? OFFSET ?"));
-  assert.ok(listingQuery.parameters.every((value) => typeof value !== "undefined"));
+  assert.equal(empty.status, 200);
+  assert.deepEqual(parseBody(empty).orders, []);
+  assert.deepEqual(parseBody(empty).pagination, {
+    page: 1,
+    pageSize: 20,
+    total: 0,
+    totalPages: 0
+  });
 
   const invalidPage = await client.request(
     "GET", "/api/admin/orders?page=0", undefined, cookie
   );
   assert.equal(invalidPage.status, 400);
+  const invalidPageSize = await client.request(
+    "GET", "/api/admin/orders?pageSize=51", undefined, cookie
+  );
+  assert.equal(invalidPageSize.status, 400);
   const invalidRange = await client.request(
     "GET", "/api/admin/orders?from=2026-03-12&to=2026-03-10", undefined, cookie
   );
