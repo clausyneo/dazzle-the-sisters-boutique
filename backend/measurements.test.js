@@ -3,7 +3,12 @@ const { createHash } = require("node:crypto");
 const http = require("node:http");
 const test = require("node:test");
 const { createServer } = require("./server");
-const { GARMENT_CATEGORIES, MEASUREMENT_FIELDS } = require("./measurements");
+const {
+  GARMENT_CATEGORIES,
+  MEASUREMENT_FIELDS,
+  MEASUREMENT_RANGES,
+  validateMeasurements
+} = require("./measurements");
 
 const origin = "http://127.0.0.1:5500";
 const customerToken = "C".repeat(43);
@@ -370,6 +375,68 @@ test("customer and admin measurement endpoints require their own authenticated s
   );
 });
 
+test("public measurement rules endpoint exposes the same category ranges used by validation", async (t) => {
+  const client = await startServer(t);
+  const response = await client.request("GET", "/api/measurement-rules");
+  assert.equal(response.status, 200);
+  assert.deepEqual(parseBody(response).ranges, MEASUREMENT_RANGES);
+});
+
+test("every configured measurement accepts both inclusive centimetre boundaries", () => {
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(MEASUREMENT_FIELDS).map(([category, fields]) => [
+      category,
+      [...fields].sort()
+    ])),
+    Object.fromEntries(Object.entries(MEASUREMENT_RANGES).map(([category, ranges]) => [
+      category,
+      Object.keys(ranges).sort()
+    ]))
+  );
+  for (const [category, fields] of Object.entries(MEASUREMENT_RANGES)) {
+    for (const [field, [minimum, maximum]] of Object.entries(fields)) {
+      assert.equal(validateMeasurements(category, "cm", { [field]: minimum })[field], minimum);
+      assert.equal(validateMeasurements(category, "cm", { [field]: maximum })[field], maximum);
+    }
+  }
+});
+
+test("every configured measurement rejects values outside either centimetre boundary", () => {
+  for (const [category, fields] of Object.entries(MEASUREMENT_RANGES)) {
+    for (const [field, [minimum, maximum]] of Object.entries(fields)) {
+      for (const value of [minimum - 0.01, maximum + 0.01]) {
+        assert.throws(
+          () => validateMeasurements(category, "cm", { [field]: value }),
+          new RegExp(`${field.replaceAll("_", " ")}.*${minimum}.*${maximum}`, "i")
+        );
+      }
+    }
+  }
+});
+
+test("inch input uses converted range boundaries and stores canonical centimetres", () => {
+  for (const [category, fields] of Object.entries(MEASUREMENT_RANGES)) {
+    for (const [field, [minimum, maximum]] of Object.entries(fields)) {
+      const minimumInches = Math.ceil((minimum / 2.54) * 100) / 100;
+      const maximumInches = Math.floor((maximum / 2.54) * 100) / 100;
+      const normalizedMinimum = validateMeasurements(category, "in", { [field]: minimumInches })[field];
+      const normalizedMaximum = validateMeasurements(category, "in", { [field]: maximumInches })[field];
+      assert.ok(normalizedMinimum >= minimum && normalizedMinimum <= maximum);
+      assert.ok(normalizedMaximum >= minimum && normalizedMaximum <= maximum);
+    }
+  }
+  assert.throws(() => validateMeasurements("BLOUSE", "in", { bust: 15.74 }), /15\.75–78\.74 in/);
+});
+
+test("invalid empty, nonnumeric, zero, negative and over-precision values have field range messages", () => {
+  for (const value of ["", "abc", 0, -1, 90.123]) {
+    assert.throws(
+      () => validateMeasurements("KURTI", "cm", { bust: value }),
+      /Bust \/ chest.*40–200 cm/
+    );
+  }
+});
+
 test("customer profile CRUD enforces ownership and converts preferred units", async (t) => {
   const client = await startServer(t);
   const created = await client.request("POST", "/api/account/measurement-profiles", {
@@ -391,14 +458,14 @@ test("customer profile CRUD enforces ownership and converts preferred units", as
   const secondProfile = await client.request("POST", "/api/account/measurement-profiles", {
     garmentCategory: "BLOUSE",
     profileName: "Everyday blouse",
-    measurements: { bust: 34 }
+    measurements: { bust: 90 }
   }, customerToken);
   assert.equal(secondProfile.status, 201);
   const secondProfileId = parseBody(secondProfile).profile.profileId;
   const otherCustomerProfile = await client.request("POST", "/api/account/measurement-profiles", {
     garmentCategory: "BLOUSE",
     profileName: "Second customer's blouse",
-    measurements: { bust: 33 }
+    measurements: { bust: 88 }
   }, otherCustomerToken);
   assert.equal(otherCustomerProfile.status, 201);
 
@@ -437,6 +504,25 @@ test("customer profile CRUD enforces ownership and converts preferred units", as
   assert.equal(updated.status, 200);
   assert.equal(parseBody(updated).profile.measurements.bust, 91.44);
   assert.equal(parseBody(updated).profile.lastUpdatedBy, "CUSTOMER");
+
+  client.pool.state.values.get(profileId).set("bust", 245);
+  const measurementEdit = await client.request(
+    "PATCH",
+    `/api/account/measurement-profiles/${profileId}`,
+    { measurements: { waist: 82 } },
+    customerToken
+  );
+  assert.equal(measurementEdit.status, 200, measurementEdit.body);
+  assert.equal(parseBody(measurementEdit).profile.measurements.bust, 245);
+  assert.equal(parseBody(measurementEdit).profile.measurements.waist, 82);
+  const invalidLegacyEdit = await client.request(
+    "PATCH",
+    `/api/account/measurement-profiles/${profileId}`,
+    { measurements: { bust: 201 } },
+    customerToken
+  );
+  assert.equal(invalidLegacyEdit.status, 400);
+  assert.match(parseBody(invalidLegacyEdit).message, /Bust \/ chest.*40–200 cm/);
 
   const deleted = await client.request(
     "DELETE", `/api/account/measurement-profiles/${profileId}`, undefined, customerToken
@@ -622,6 +708,18 @@ test("admin profile routes search, view and edit only with admin authentication"
   assert.equal(parseBody(updated).profile.profileName, "Admin-reviewed kurti");
   assert.equal(parseBody(updated).profile.lastUpdatedBy, "ADMIN");
   assert.equal(client.pool.state.profiles.get(profileId).last_updated_by_id, 91);
+
+  client.pool.state.values.get(profileId).set("bust", 245);
+  const adminMeasurementEdit = await client.request(
+    "PATCH",
+    `/api/admin/measurement-profiles/${profileId}`,
+    { measurements: { waist: 88 } },
+    adminToken,
+    "dazzle_admin_session"
+  );
+  assert.equal(adminMeasurementEdit.status, 200, adminMeasurementEdit.body);
+  assert.equal(parseBody(adminMeasurementEdit).profile.measurements.bust, 245);
+  assert.equal(parseBody(adminMeasurementEdit).profile.measurements.waist, 88);
 
   assert.equal(
     (await client.request(

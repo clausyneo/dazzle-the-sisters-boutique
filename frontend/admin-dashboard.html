@@ -8,6 +8,7 @@
   <link rel="icon" type="image/png" href="assets/images/brand/dazzle-logo.png">
   <link rel="stylesheet" href="css/style.css">
   <script src="js/config.js" defer></script>
+  <script src="js/measurement-profile-editor.js" defer></script>
   <script src="js/admin.js" defer></script>
 </head>
 <body class="admin-body">
@@ -208,7 +209,7 @@
             </select>
           </label>
         </div>
-        <p class="admin-measurement-edit-note">If measurements are changed, the values entered below replace the complete set for this profile. Leave a value blank to remove it.</p>
+        <p class="admin-measurement-edit-note">Only changed measurements are saved. Existing values outside the current sanity ranges remain unchanged unless you edit them.</p>
         <div class="admin-measurement-fields" id="admin-measurement-fields"></div>
         <label class="admin-measurement-notes-label" for="admin-measurement-notes">Notes
           <textarea id="admin-measurement-notes" name="notes" rows="3" maxlength="1000"></textarea>

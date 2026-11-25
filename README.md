@@ -30,6 +30,7 @@ Dazzle the Sister's Boutique is an online shopping platform for women's ethnic w
 ### Royal Measurement Studio
 - Authenticated customer APIs for measurement profiles across supported garment categories
 - Measurement values stored in centimetres with a customer-selected display unit
+- Backend-defined field ranges are served by `GET /api/measurement-rules` for both measurement editors
 - Customer Measurement Book with create, view, edit and delete journeys
 - Admin search, view and edit tools for customer measurement profiles
 
@@ -188,6 +189,10 @@ backend service URL changes.
 Customer routes require the existing customer session cookie and always scope
 profile access to the signed-in customer:
 
+The public `GET /api/measurement-rules` endpoint exposes the same category and
+field limits enforced by the backend, so customer and admin input constraints
+do not maintain separate copies of the ranges.
+
 | Method | Route | Purpose |
 |---|---|---|
 | `GET` | `/api/account/measurement-profiles` | List the signed-in customer's profiles |
@@ -209,9 +214,14 @@ profile:
 Supported category codes are `BLOUSE`, `SUIT_SALWAR_KAMEEZ`, `LEHENGA`,
 `KURTI`, `PANTS_PALAZZO`, and `ANARKALI_GOWN`. Measurement values are
 validated per category and stored in centimetres; responses use each
-profile's `unitPreference`. Each customer can save up to 20 profiles. In a
-`PATCH` request, a supplied `measurements` object replaces the complete
-measurement set; omit it to preserve all existing measurement values. See
+profile's `unitPreference`. The configured field limits are broad sanity
+checks, not universal tailoring standards. Shoulder, armhole, waistband
+position, length endpoints, and ankle-opening definitions depend on boutique
+practice. Existing values outside the current ranges remain readable and are
+retained by metadata-only or unit-only edits. A measurement is range-checked
+when it is created or changed. Each customer can save up to 20 profiles. In a
+`PATCH` request, supplied measurement fields are merged into the existing set;
+omitted fields are preserved. See
 [`database/migrations/README.md`](database/migrations/README.md) before
 applying the additive schema migration.
 

@@ -89,12 +89,18 @@
     ]
   };
 
+  let measurementRanges = null;
   const state = {
     auth: "loading",
     profiles: [],
     step: 1,
     editingProfileId: null,
-    measurementsCm: {}
+    originalGarmentCategory: null,
+    measurementsDirty: false,
+    measurementsCm: {},
+    originalMeasurementsCm: {},
+    originalUnit: "cm",
+    changedMeasurementFields: new Set()
   };
 
   function showMessage(element, message, isError = false, isSuccess = false) {
@@ -120,6 +126,20 @@
 
   function displayNumber(value) {
     return Number(value.toFixed(2)).toString();
+  }
+
+  function applyInputRange(input, category, field, unit) {
+    const range = measurementRanges?.[category]?.[field];
+    if (!range) return;
+    const converted = window.DAZZLE_MEASUREMENT_PROFILE_EDITOR.rangeInUnit(range, unit);
+    input.min = String(converted[0]);
+    input.max = String(converted[1]);
+    input.step = "0.01";
+  }
+
+  function measurementIsChanged(field) {
+    if (!state.editingProfileId || categorySelect.value !== state.originalGarmentCategory) return true;
+    return state.changedMeasurementFields.has(field);
   }
 
   function formatDate(value) {
@@ -186,13 +206,22 @@
       input.name = field;
       input.type = "number";
       input.inputMode = "decimal";
-      input.min = "0.1";
-      input.max = unit === "in" ? "157.48" : "400";
-      input.step = "0.01";
-      input.required = true;
+      applyInputRange(input, category, field, unit);
+      input.required = !state.editingProfileId || measurementIsChanged(field);
       input.setAttribute("aria-describedby", `measurement-help-${field}`);
       if (Object.prototype.hasOwnProperty.call(measurements, field)) {
         input.value = displayNumber(fromCentimeters(measurements[field], unit));
+      }
+      const originalCm = state.originalMeasurementsCm[field];
+      const originalOutOfRange = state.editingProfileId &&
+        Number.isFinite(originalCm) &&
+        !window.DAZZLE_MEASUREMENT_PROFILE_EDITOR.isWithinRange(
+          originalCm,
+          measurementRanges[category][field]
+        );
+      if (originalOutOfRange && !measurementIsChanged(field)) {
+        input.removeAttribute("min");
+        input.removeAttribute("max");
       }
 
       const unitLabel = document.createElement("span");
@@ -204,7 +233,46 @@
       help.id = `measurement-help-${field}`;
       help.textContent = guidance;
 
+      if (originalOutOfRange && !measurementIsChanged(field)) {
+        const warning = document.createElement("small");
+        warning.className = "measurement-range-warning";
+        warning.setAttribute("role", "status");
+        warning.textContent = "This saved value is outside the current sanity range. It will be kept unless you change this measurement.";
+        wrapper.append(warning);
+      }
+
       input.addEventListener("input", () => {
+        const numericValue = Number(input.value);
+        const valueCm = input.value === "" ? NaN : toCentimeters(numericValue, unit);
+        const originalDisplay = Number.isFinite(originalCm)
+          ? Number(fromCentimeters(originalCm, unit).toFixed(2))
+          : null;
+        if (state.editingProfileId && category === state.originalGarmentCategory &&
+            Number.isFinite(originalDisplay) && numericValue === originalDisplay) {
+          state.changedMeasurementFields.delete(field);
+        } else {
+          state.changedMeasurementFields.add(field);
+        }
+        state.measurementsDirty = state.changedMeasurementFields.size > 0;
+        input.required = !state.editingProfileId || measurementIsChanged(field);
+        if (measurementIsChanged(field)) {
+          applyInputRange(input, category, field, unit);
+        } else if (originalOutOfRange) {
+          input.removeAttribute("min");
+          input.removeAttribute("max");
+        }
+        const range = measurementRanges[category][field];
+        const acceptedRange = window.DAZZLE_MEASUREMENT_PROFILE_EDITOR.formatRange(range, unit);
+        const precisionValid = Number.isFinite(numericValue) && Number(numericValue.toFixed(2)) === numericValue;
+        const withinRange = window.DAZZLE_MEASUREMENT_PROFILE_EDITOR.isWithinRange(valueCm, range);
+        const customError = measurementIsChanged(field) && input.value !== ""
+          ? !precisionValid
+            ? `${labelText} must use at most two decimal places and be within ${acceptedRange}.`
+            : !withinRange
+              ? `${labelText} must be within ${acceptedRange}.`
+              : ""
+          : "";
+        input.setCustomValidity(customError);
         if (input.value === "") {
           delete measurements[field];
         } else {
@@ -257,9 +325,26 @@
     summary.textContent = `${categoryLabels[category]} · ${unit === "in" ? "Inches" : "Centimetres"} · ${fittingSelect.value || "No fitting preference"}`;
     const list = document.createElement("dl");
     list.className = "studio-review-list";
+    const outOfRange = Object.entries(profile.measurements || {}).filter(([field, value]) => {
+      const range = measurementRanges?.[profile.garmentCategory]?.[field];
+      return range && !window.DAZZLE_MEASUREMENT_PROFILE_EDITOR.isWithinRange(
+        toCentimeters(Number(value), profile.unitPreference), range
+      );
+    });
+    if (outOfRange.length) {
+      const warning = document.createElement("p");
+      warning.className = "measurement-range-warning";
+      warning.setAttribute("role", "status");
+      warning.textContent = "One or more saved measurements are outside the current sanity ranges. Existing values have been kept.";
+      wrapper.append(warning);
+    }
 
     for (const field of categoryFields[category]) {
       const [label] = measurementFields[field];
+      if (!Object.prototype.hasOwnProperty.call(measurements, field)) {
+        addReviewRow(list, label, "Not specified");
+        continue;
+      }
       const value = displayNumber(fromCentimeters(measurements[field], unit));
       addReviewRow(list, label, `${value} ${unit}`);
     }
@@ -270,7 +355,12 @@
 
   function resetDraft() {
     state.editingProfileId = null;
+    state.originalGarmentCategory = null;
+    state.measurementsDirty = false;
     state.measurementsCm = {};
+    state.originalMeasurementsCm = {};
+    state.originalUnit = "cm";
+    state.changedMeasurementFields.clear();
     categorySelect.value = "";
     profileNameInput.value = "";
     fittingSelect.value = "";
@@ -283,6 +373,10 @@
   }
 
   function startNewProfile() {
+    if (!measurementRanges) {
+      showMessage(pageMessage, "Measurement validation rules are unavailable. Please refresh and try again.", true);
+      return;
+    }
     if (state.auth === "loading" || state.auth === "error") {
       showMessage(pageMessage, "Checking your customer session. Please try again in a moment.");
       return;
@@ -415,12 +509,17 @@
   }
 
   async function loadProfileForEdit(profileId, button) {
+    if (!measurementRanges) {
+      showMessage(pageMessage, "Measurement validation rules are unavailable. Please refresh and try again.", true);
+      return;
+    }
     button.disabled = true;
     try {
       const result = await apiRequest(`/api/account/measurement-profiles/${profileId}`);
       const profile = result.profile;
       resetDraft();
       state.editingProfileId = profile.profileId;
+      state.originalGarmentCategory = profile.garmentCategory;
       categorySelect.value = profile.garmentCategory;
       profileNameInput.value = profile.profileName;
       fittingSelect.value = profile.fittingPreference || "";
@@ -431,6 +530,9 @@
         valuesCm[field] = toCentimeters(Number(value), profile.unitPreference);
       }
       state.measurementsCm[profile.garmentCategory] = valuesCm;
+      state.originalMeasurementsCm = { ...valuesCm };
+      state.originalUnit = profile.unitPreference;
+      state.changedMeasurementFields.clear();
       builder.querySelector("[data-cancel-edit]").hidden = false;
       builder.hidden = false;
       showMessage(pageMessage, `Editing ${profile.profileName}. Your existing values are loaded.`);
@@ -476,20 +578,25 @@
   function prepareRequestBody() {
     const category = categorySelect.value;
     const unit = unitSelect.value;
-    const measurements = {};
-    for (const field of categoryFields[category]) {
-      measurements[field] = Number(
-        fromCentimeters(getCurrentMeasurements()[field], unit).toFixed(2)
-      );
-    }
-    return {
+    const measurements = window.DAZZLE_MEASUREMENT_PROFILE_EDITOR.buildMeasurementPatch({
+      editing: Boolean(state.editingProfileId),
+      originalCategory: state.originalGarmentCategory,
+      category,
+      measurementsDirty: state.measurementsDirty,
+      measurementsCm: getCurrentMeasurements(),
+      fields: categoryFields[category],
+      changedFields: state.changedMeasurementFields,
+      unit
+    });
+    const body = {
       garmentCategory: category,
       profileName: profileNameInput.value.trim(),
       unitPreference: unit,
       fittingPreference: fittingSelect.value || null,
-      notes: notesInput.value.trim() || null,
-      measurements
+      notes: notesInput.value.trim() || null
     };
+    if (measurements !== undefined) body.measurements = measurements;
+    return body;
   }
 
   categorySelect.addEventListener("change", () => {
@@ -510,6 +617,7 @@
       }
       const fields = fieldsContainer.querySelectorAll("input[required]");
       for (const field of fields) {
+        if (!measurementIsChanged(field.name)) continue;
         if (!field.reportValidity()) return;
       }
       showMessage(pageMessage, "");
@@ -537,6 +645,10 @@
   builder.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!confirmCheckbox.checked || saveButton.disabled) return;
+    for (const field of fieldsContainer.querySelectorAll("input[required]")) {
+      if (!measurementIsChanged(field.name)) continue;
+      if (!field.reportValidity()) return;
+    }
     saveButton.disabled = true;
     const originalLabel = saveButton.textContent;
     saveButton.textContent = "Saving…";
@@ -577,17 +689,25 @@
     }
   });
 
+  saveButton.formNoValidate = true;
+
   for (const button of startButtons) {
     if (button) button.addEventListener("click", startNewProfile);
   }
   bookEmpty.querySelector("[data-start-profile]").addEventListener("click", startNewProfile);
   document.querySelector("#retry-book").addEventListener("click", loadProfiles);
 
-  loadProfiles().then((signedIn) => {
+  apiRequest("/api/measurement-rules").then((result) => {
+    measurementRanges = result.ranges;
+    return loadProfiles();
+  }).then((signedIn) => {
     const params = new URLSearchParams(window.location.search);
     if (signedIn && params.get("start") === "1") {
       startNewProfile();
       window.history.replaceState(null, "", `${window.location.pathname}#profile-builder`);
     }
+  }).catch((error) => {
+    showMessage(bookMessage, friendlyError(error, "Measurement rules could not be loaded."), true);
+    loadProfiles();
   });
 })();

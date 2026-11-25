@@ -41,6 +41,7 @@ const {
   updateAdminOrderStatus
 } = require("./admin");
 const {
+  MEASUREMENT_RANGES,
   createCustomerMeasurementProfile,
   deleteCustomerMeasurementProfile,
   getAdminMeasurementProfile,
@@ -244,6 +245,11 @@ function createServer(options = {}) {
 
       response.writeHead(204);
       response.end();
+      return;
+    }
+
+    if (requestUrl.pathname === "/api/measurement-rules" && request.method === "GET") {
+      sendJson(response, 200, { success: true, ranges: MEASUREMENT_RANGES });
       return;
     }
 

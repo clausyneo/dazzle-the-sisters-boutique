@@ -2908,6 +2908,13 @@ h2 em {
   font-size: 0.86rem;
 }
 
+.measurement-range-warning {
+  display: block;
+  margin: 0.35rem 0;
+  color: #8a5a00;
+  font-size: 0.85rem;
+}
+
 .admin-measurement-filters {
   display: grid;
   grid-template-columns: minmax(15rem, 1.4fr) minmax(13rem, 1fr) auto;

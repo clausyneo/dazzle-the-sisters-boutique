@@ -204,12 +204,15 @@ async function initializeAdminMeasurementManagement() {
   const notesInput = document.querySelector("#admin-measurement-notes");
   const fieldsContainer = document.querySelector("#admin-measurement-fields");
   const saveButton = document.querySelector("#admin-measurement-save");
+  let measurementRanges = null;
   let currentPage = 1;
   let totalPages = 1;
   let currentProfile = null;
   let selectedProfileId = null;
   let measurementsCmByCategory = {};
   let measurementsDirty = false;
+  let originalMeasurementsCm = {};
+  const changedMeasurementFields = new Set();
   let savePending = false;
   let listRequestId = 0;
 
@@ -238,6 +241,20 @@ async function initializeAdminMeasurementManagement() {
     return Number(value.toFixed(2)).toString();
   }
 
+  function applyInputRange(input, category, field, unit) {
+    const range = measurementRanges?.[category]?.[field];
+    if (!range) return;
+    const converted = window.DAZZLE_MEASUREMENT_PROFILE_EDITOR.rangeInUnit(range, unit);
+    input.min = String(converted[0]);
+    input.max = String(converted[1]);
+    input.step = "0.01";
+  }
+
+  function measurementIsChanged(field) {
+    return categorySelect.value !== currentProfile?.garmentCategory ||
+      changedMeasurementFields.has(field);
+  }
+
   function getCurrentMeasurements() {
     const category = categorySelect.value;
     if (!measurementsCmByCategory[category]) measurementsCmByCategory[category] = {};
@@ -252,6 +269,20 @@ async function initializeAdminMeasurementManagement() {
     measurementBlock.append(heading);
 
     const entries = Object.entries(profile.measurements || {});
+    const outOfRange = entries.filter(([field, value]) => {
+      const range = measurementRanges[profile.garmentCategory]?.[field];
+      return range && !window.DAZZLE_MEASUREMENT_PROFILE_EDITOR.isWithinRange(
+        toCentimeters(Number(value), profile.unitPreference),
+        range
+      );
+    });
+    if (outOfRange.length) {
+      const warning = document.createElement("p");
+      warning.className = "measurement-range-warning";
+      warning.setAttribute("role", "status");
+      warning.textContent = "One or more saved measurements are outside the current sanity ranges. Existing values remain unchanged unless edited.";
+      measurementBlock.append(warning);
+    }
     if (!entries.length) {
       addDetailLine(measurementBlock, "Measurements", "No values saved");
     } else {
@@ -321,19 +352,66 @@ async function initializeAdminMeasurementManagement() {
       input.name = field;
       input.type = "number";
       input.inputMode = "decimal";
-      input.min = "0.1";
-      input.max = unit === "in" ? "157.48" : "400";
-      input.step = "0.01";
+      applyInputRange(input, category, field, unit);
       if (Object.prototype.hasOwnProperty.call(measurements, field)) {
         input.value = displayMeasurement(fromCentimeters(measurements[field], unit));
       }
+      const originalCm = originalMeasurementsCm[field];
+      const originalOutOfRange = Number.isFinite(originalCm) &&
+        !window.DAZZLE_MEASUREMENT_PROFILE_EDITOR.isWithinRange(
+          originalCm,
+          measurementRanges[category][field]
+        );
+      if (originalOutOfRange && !measurementIsChanged(field)) {
+        input.removeAttribute("min");
+        input.removeAttribute("max");
+      }
+      input.required = measurementIsChanged(field);
 
       const unitLabel = document.createElement("span");
       unitLabel.textContent = unit;
       unitLabel.setAttribute("aria-hidden", "true");
       inputRow.append(input, unitLabel);
+      if (originalOutOfRange && !measurementIsChanged(field)) {
+        const warning = document.createElement("small");
+        warning.className = "measurement-range-warning";
+        warning.setAttribute("role", "status");
+        warning.textContent = "Saved value is outside the current sanity range. It will be kept unless changed.";
+        wrapper.append(warning);
+      }
       input.addEventListener("input", () => {
-        measurementsDirty = true;
+        const numericValue = Number(input.value);
+        const valueCm = input.value === "" ? NaN : toCentimeters(numericValue, unit);
+        const originalDisplay = Number.isFinite(originalCm)
+          ? Number(fromCentimeters(originalCm, unit).toFixed(2))
+          : null;
+        if (currentProfile && category === currentProfile.garmentCategory &&
+            Number.isFinite(originalDisplay) && numericValue === originalDisplay) {
+          changedMeasurementFields.delete(field);
+        } else {
+          changedMeasurementFields.add(field);
+        }
+        measurementsDirty = changedMeasurementFields.size > 0;
+        input.required = measurementIsChanged(field);
+        if (measurementIsChanged(field)) {
+          applyInputRange(input, category, field, unit);
+        } else if (originalOutOfRange) {
+          input.removeAttribute("min");
+          input.removeAttribute("max");
+        }
+        const range = measurementRanges[category][field];
+        const labelText = ADMIN_MEASUREMENT_LABELS[field];
+        const acceptedRange = window.DAZZLE_MEASUREMENT_PROFILE_EDITOR.formatRange(range, unit);
+        const precisionValid = Number.isFinite(numericValue) && Number(numericValue.toFixed(2)) === numericValue;
+        const withinRange = window.DAZZLE_MEASUREMENT_PROFILE_EDITOR.isWithinRange(valueCm, range);
+        const customError = measurementIsChanged(field) && input.value !== ""
+          ? !precisionValid
+            ? `${labelText} must use at most two decimal places and be within ${acceptedRange}.`
+            : !withinRange
+              ? `${labelText} must be within ${acceptedRange}.`
+              : ""
+          : "";
+        input.setCustomValidity(customError);
         if (input.value === "") {
           delete measurements[field];
         } else {
@@ -357,6 +435,8 @@ async function initializeAdminMeasurementManagement() {
       )
     };
     measurementsDirty = false;
+    originalMeasurementsCm = { ...measurementsCmByCategory[currentProfile.garmentCategory] };
+    changedMeasurementFields.clear();
     profileNameInput.value = currentProfile.profileName;
     categorySelect.value = currentProfile.garmentCategory;
     unitSelect.value = currentProfile.unitPreference;
@@ -447,7 +527,9 @@ async function initializeAdminMeasurementManagement() {
   async function saveMeasurementProfile(event) {
     event.preventDefault();
     if (!currentProfile || savePending) return;
-    if (!editForm.reportValidity()) return;
+    for (const input of [profileNameInput, categorySelect, unitSelect, fittingSelect, notesInput]) {
+      if (!input.reportValidity()) return;
+    }
 
     const category = categorySelect.value;
     const categoryChanged = category !== currentProfile.garmentCategory;
@@ -462,11 +544,13 @@ async function initializeAdminMeasurementManagement() {
 
     if (shouldReplaceMeasurements) {
       for (const input of fieldsContainer.querySelectorAll("input")) {
+        if (!measurementIsChanged(input.name)) continue;
         if (!input.reportValidity()) return;
       }
       const measurementsCm = getCurrentMeasurements();
       const measurements = {};
       for (const field of ADMIN_MEASUREMENT_FIELDS[category]) {
+        if (!measurementIsChanged(field)) continue;
         if (!Object.prototype.hasOwnProperty.call(measurementsCm, field)) continue;
         measurements[field] = Number(fromCentimeters(
           measurementsCm[field],
@@ -552,6 +636,14 @@ async function initializeAdminMeasurementManagement() {
   unitSelect.addEventListener("change", renderMeasurementInputs);
   editForm.addEventListener("submit", saveMeasurementProfile);
 
+  saveButton.formNoValidate = true;
+  try {
+    const result = await adminApi("/api/measurement-rules");
+    measurementRanges = result.ranges;
+  } catch (error) {
+    setAdminMessage(profilesMessage, `Measurement rules could not be loaded: ${error.message}`, true);
+    return;
+  }
   await loadMeasurementProfiles(1);
 }
 

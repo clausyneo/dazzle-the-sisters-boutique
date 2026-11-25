@@ -33,6 +33,42 @@ const MEASUREMENT_FIELDS = Object.freeze({
   ]
 });
 
+const COMMON_MEASUREMENT_RANGES = Object.freeze({
+  bust: [40, 200], blouse_bust: [40, 200], blouse_waist: [40, 200],
+  waist: [40, 200], trouser_waist: [40, 200], lehenga_waist: [40, 200],
+  hip: [40, 220], trouser_hip: [40, 220], lehenga_hip: [40, 220],
+  shoulder: [25, 60], blouse_shoulder: [25, 60], armhole: [25, 75],
+  sleeve_length: [15, 90], blouse_sleeve_length: [15, 90]
+});
+const CATEGORY_MEASUREMENT_RANGES = Object.freeze({
+  BLOUSE: { blouse_length: [20, 70], front_neck_depth: [1, 35], back_neck_depth: [1, 30] },
+  SUIT_SALWAR_KAMEEZ: { top_length: [35, 140], trouser_length: [55, 140], inseam: [40, 110] },
+  LEHENGA: { lehenga_length: [55, 160] },
+  KURTI: { kurti_length: [45, 160] },
+  PANTS_PALAZZO: { thigh: [30, 120], inseam: [40, 110], outseam: [55, 150], ankle_opening: [15, 70] },
+  ANARKALI_GOWN: { gown_length: [60, 200] }
+});
+const MEASUREMENT_LABELS = Object.freeze({
+  bust: "Bust / chest", blouse_bust: "Blouse bust", blouse_waist: "Blouse waist",
+  waist: "Waist", trouser_waist: "Trouser waist", lehenga_waist: "Lehenga waist",
+  hip: "Hips", trouser_hip: "Trouser hip", lehenga_hip: "Lehenga hip",
+  shoulder: "Shoulder", blouse_shoulder: "Blouse shoulder", armhole: "Armhole",
+  sleeve_length: "Sleeve length", blouse_sleeve_length: "Blouse sleeve length",
+  blouse_length: "Blouse length", front_neck_depth: "Front neck depth",
+  back_neck_depth: "Back neck depth", top_length: "Suit top length",
+  trouser_length: "Trouser length", inseam: "Inseam", lehenga_length: "Lehenga length",
+  kurti_length: "Kurti length", thigh: "Thigh", outseam: "Outseam",
+  ankle_opening: "Ankle opening", gown_length: "Gown length"
+});
+const MEASUREMENT_RANGES = Object.freeze(Object.fromEntries(
+  GARMENT_CATEGORIES.map((category) => [category, Object.freeze(Object.fromEntries(
+    MEASUREMENT_FIELDS[category].map((field) => [
+      field,
+      Object.freeze(CATEGORY_MEASUREMENT_RANGES[category][field] || COMMON_MEASUREMENT_RANGES[field])
+    ])
+  ))])
+));
+
 const UNIT_PREFERENCES = new Set(["cm", "in"]);
 const FITTING_PREFERENCES = new Set(["SNUG", "REGULAR", "RELAXED"]);
 const PROFILE_INPUT_FIELDS = new Set([
@@ -46,7 +82,6 @@ const PROFILE_INPUT_FIELDS = new Set([
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 50;
 const MAX_PAGE = 1_000_000;
-const MAX_MEASUREMENT_CM = 400;
 const MAX_PROFILES_PER_CUSTOMER = 20;
 
 function hasOwn(value, key) {
@@ -112,6 +147,13 @@ function validateNotes(value) {
   return value.trim() || null;
 }
 
+function formatRange(range, unitPreference) {
+  if (unitPreference === "cm") return `${range[0]}–${range[1]} cm`;
+  const minimum = Math.ceil((range[0] / 2.54) * 100) / 100;
+  const maximum = Math.floor((range[1] / 2.54) * 100) / 100;
+  return `${minimum.toFixed(2)}–${maximum.toFixed(2)} in`;
+}
+
 function validateMeasurements(category, unitPreference, values) {
   requireObject(values);
   const allowedFields = MEASUREMENT_FIELDS[category];
@@ -125,14 +167,18 @@ function validateMeasurements(category, unitPreference, values) {
     if (!allowedFields.includes(field)) {
       throw new RequestError(400, `The measurement field '${field}' is invalid for this garment.`);
     }
+    const range = MEASUREMENT_RANGES[category][field];
+    const label = MEASUREMENT_LABELS[field] || field.replaceAll("_", " ");
     if (typeof value !== "number" || !Number.isFinite(value) ||
-        value < 0.1 || Number(value.toFixed(2)) !== value) {
-      throw new RequestError(400, "Measurement values must be positive numbers with at most two decimals.");
+        Number(value.toFixed(2)) !== value) {
+      throw new RequestError(400,
+        `${label} must be a number with at most two decimal places (${formatRange(range, unitPreference)}).`);
     }
 
     const centimeters = unitPreference === "in" ? value * 2.54 : value;
-    if (centimeters > MAX_MEASUREMENT_CM) {
-      throw new RequestError(400, "A measurement value is outside the supported range.");
+    if (centimeters < range[0] || centimeters > range[1]) {
+      throw new RequestError(400,
+        `${label} must be within ${formatRange(range, unitPreference)}.`);
     }
     normalized[field] = Number(centimeters.toFixed(3));
   }
@@ -464,11 +510,21 @@ async function updateMeasurementProfile(pool, rawProfileId, customerId, body, ac
       ]
     );
     if (input.measurementsProvided) {
+      const existingRows = input.garmentCategory !== existing.garment_category
+        ? []
+        : await selectValues(connection, [profileId]);
+      const mergedMeasurements = Object.fromEntries(existingRows.map((row) => [
+        row.measurement_key,
+        Number(row.value_cm)
+      ]));
+      Object.assign(mergedMeasurements, input.measurementsCm);
       await connection.execute(
         "DELETE FROM customer_measurement_values WHERE profile_id = ?",
         [profileId]
       );
-      await insertValues(connection, profileId, input.measurementsCm);
+      if (Object.keys(mergedMeasurements).length) {
+        await insertValues(connection, profileId, mergedMeasurements);
+      }
     }
     const row = await selectProfile(connection, profileId, existing.customer_id);
     const values = await selectValues(connection, [profileId]);
@@ -551,6 +607,8 @@ async function listAdminMeasurementProfiles(pool, searchParams) {
 }
 
 module.exports = {
+  MEASUREMENT_RANGES,
+  validateMeasurements,
   GARMENT_CATEGORIES,
   MAX_PROFILES_PER_CUSTOMER,
   MEASUREMENT_FIELDS,
