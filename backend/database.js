@@ -22,7 +22,7 @@ const ssl = caPath
   ? {
       ca: readDatabaseCaCertificate(caPath),
       rejectUnauthorized: true,
-      ...(isProduction ? { verifyIdentity: true } : {})
+      verifyIdentity: true
     }
   : undefined;
 

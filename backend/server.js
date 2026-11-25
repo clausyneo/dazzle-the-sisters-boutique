@@ -40,6 +40,15 @@ const {
   updateAdminOrderPaymentStatus,
   updateAdminOrderStatus
 } = require("./admin");
+const {
+  createCustomerMeasurementProfile,
+  deleteCustomerMeasurementProfile,
+  getAdminMeasurementProfile,
+  getCustomerMeasurementProfile,
+  listAdminMeasurementProfiles,
+  listCustomerMeasurementProfiles,
+  updateMeasurementProfile
+} = require("./measurements");
 
 const port = Number(process.env.PORT || 3000);
 const localFrontendOrigins = [
@@ -47,6 +56,7 @@ const localFrontendOrigins = [
   "http://localhost:5500"
 ];
 const allowedMethods = "GET, POST, PATCH, OPTIONS";
+const measurementProfileMethods = `${allowedMethods}, DELETE`;
 const allowedHeaders = "Content-Type, Idempotency-Key";
 
 function sendJson(response, statusCode, data, headers = {}) {
@@ -68,8 +78,12 @@ async function sendNotificationSafely(sender, message, label) {
 function addCorsHeaders(request, response, allowedOrigins) {
   response.setHeader("Vary", "Origin");
   if (allowedOrigins.has(request.headers.origin)) {
+    const requestPath = new URL(request.url, "http://localhost").pathname;
+    const methods = /^\/api\/account\/measurement-profiles(?:\/\d+)?$/.test(requestPath)
+      ? measurementProfileMethods
+      : allowedMethods;
     response.setHeader("Access-Control-Allow-Origin", request.headers.origin);
-    response.setHeader("Access-Control-Allow-Methods", allowedMethods);
+    response.setHeader("Access-Control-Allow-Methods", methods);
     response.setHeader("Access-Control-Allow-Headers", allowedHeaders);
     response.setHeader("Access-Control-Allow-Credentials", "true");
   }
@@ -83,9 +97,16 @@ function isAllowedPreflight(request) {
     .filter(Boolean);
 
   const requestPath = new URL(request.url, "http://localhost").pathname;
-  const allowedPreflightMethod = requestPath === "/api/orders"
-    ? requestedMethod === "POST"
-    : ["GET", "POST", "PATCH"].includes(requestedMethod);
+  const isCustomerMeasurementProfilePath =
+    /^\/api\/account\/measurement-profiles(?:\/\d+)?$/.test(requestPath);
+  let allowedPreflightMethod;
+  if (requestPath === "/api/orders") {
+    allowedPreflightMethod = requestedMethod === "POST";
+  } else if (requestedMethod === "DELETE") {
+    allowedPreflightMethod = isCustomerMeasurementProfilePath;
+  } else {
+    allowedPreflightMethod = ["GET", "POST", "PATCH"].includes(requestedMethod);
+  }
 
   return allowedPreflightMethod &&
     requestedHeaders.every((header) => ["content-type", "idempotency-key"].includes(header));
@@ -326,6 +347,35 @@ function createServer(options = {}) {
           return;
         }
 
+        if (path === "/api/admin/measurement-profiles" && method === "GET") {
+          const result = await listAdminMeasurementProfiles(databasePool, requestUrl.searchParams);
+          sendJson(response, 200, { success: true, ...result });
+          return;
+        }
+
+        const adminMeasurementProfileMatch =
+          /^\/api\/admin\/measurement-profiles\/([^/]+)$/.exec(path);
+        if (adminMeasurementProfileMatch && method === "GET") {
+          const profile = await getAdminMeasurementProfile(
+            databasePool,
+            adminMeasurementProfileMatch[1]
+          );
+          sendJson(response, 200, { success: true, profile });
+          return;
+        }
+
+        if (adminMeasurementProfileMatch && method === "PATCH") {
+          const profile = await updateMeasurementProfile(
+            databasePool,
+            adminMeasurementProfileMatch[1],
+            null,
+            await readJsonBody(request),
+            { type: "ADMIN", id: admin.adminId }
+          );
+          sendJson(response, 200, { success: true, profile });
+          return;
+        }
+
         if (path === "/api/admin/orders" && method === "GET") {
           const result = await listAdminOrders(databasePool, requestUrl.searchParams);
           sendJson(response, 200, { success: true, ...result });
@@ -477,6 +527,69 @@ function createServer(options = {}) {
           sendJson(response, 200, { success: true }, {
             "Set-Cookie": clearSessionCookie()
           });
+          return;
+        }
+
+        if (path === "/api/account/measurement-profiles" &&
+            (method === "GET" || method === "POST")) {
+          const customer = await getAuthenticatedCustomer(databasePool, request);
+          if (!customer) {
+            sendJson(response, 401, { success: false, message: "Please sign in to continue." });
+            return;
+          }
+          if (method === "GET") {
+            const profiles = await listCustomerMeasurementProfiles(
+              databasePool,
+              customer.customerId
+            );
+            sendJson(response, 200, { success: true, profiles });
+            return;
+          }
+          const profile = await createCustomerMeasurementProfile(
+            databasePool,
+            customer.customerId,
+            await readJsonBody(request)
+          );
+          sendJson(response, 201, { success: true, profile });
+          return;
+        }
+
+        const customerMeasurementProfileMatch =
+          /^\/api\/account\/measurement-profiles\/([^/]+)$/.exec(path);
+        if (customerMeasurementProfileMatch &&
+            ["GET", "PATCH", "DELETE"].includes(method)) {
+          const customer = await getAuthenticatedCustomer(databasePool, request);
+          if (!customer) {
+            sendJson(response, 401, { success: false, message: "Please sign in to continue." });
+            return;
+          }
+          const profileId = customerMeasurementProfileMatch[1];
+          if (method === "GET") {
+            const profile = await getCustomerMeasurementProfile(
+              databasePool,
+              customer.customerId,
+              profileId
+            );
+            sendJson(response, 200, { success: true, profile });
+            return;
+          }
+          if (method === "PATCH") {
+            const profile = await updateMeasurementProfile(
+              databasePool,
+              profileId,
+              customer.customerId,
+              await readJsonBody(request),
+              { type: "CUSTOMER", id: customer.customerId }
+            );
+            sendJson(response, 200, { success: true, profile });
+            return;
+          }
+          const result = await deleteCustomerMeasurementProfile(
+            databasePool,
+            customer.customerId,
+            profileId
+          );
+          sendJson(response, 200, { success: true, ...result });
           return;
         }
 

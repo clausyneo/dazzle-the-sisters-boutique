@@ -27,6 +27,7 @@ desktop.ini
 
 # Test output
 coverage/
+test-results/
 
 # Build output
 dist/
