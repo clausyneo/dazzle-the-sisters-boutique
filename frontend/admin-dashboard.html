@@ -122,6 +122,103 @@
         </table>
       </div>
     </section>
+
+    <section class="admin-card admin-measurements-panel" id="admin-measurements-panel">
+      <div class="admin-panel-heading">
+        <div><p class="eyebrow">Customer care</p><h2>Customer Measurements</h2></div>
+      </div>
+      <p class="admin-measurements-intro">Search saved garment profiles, review customer measurements and update a profile when requested.</p>
+      <form class="admin-measurement-filters" id="admin-measurement-filter-form">
+        <label for="admin-measurement-search">Customer name, phone or profile name
+          <input id="admin-measurement-search" name="search" type="search" maxlength="100" placeholder="Search measurements">
+        </label>
+        <label for="admin-measurement-category">Garment category
+          <select id="admin-measurement-category" name="garmentCategory">
+            <option value="">All garment categories</option>
+            <option value="BLOUSE">Blouse</option>
+            <option value="SUIT_SALWAR_KAMEEZ">Suit / Salwar Kameez</option>
+            <option value="LEHENGA">Lehenga</option>
+            <option value="KURTI">Kurti</option>
+            <option value="PANTS_PALAZZO">Pants / Palazzo</option>
+            <option value="ANARKALI_GOWN">Anarkali / Gown</option>
+          </select>
+        </label>
+        <div class="admin-measurement-filter-actions">
+          <button class="button button-burgundy" type="submit">Search</button>
+          <button class="button button-light" id="admin-measurement-clear" type="button">Clear</button>
+        </div>
+      </form>
+      <p class="admin-table-message" id="admin-measurements-message" role="status" aria-live="polite"></p>
+      <div class="admin-table-wrap">
+        <table class="admin-table admin-measurement-table">
+          <thead>
+            <tr>
+              <th>Customer</th><th>Phone</th><th>Profile</th><th>Garment</th>
+              <th>Unit</th><th>Last updated</th><th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="admin-measurements-body"></tbody>
+        </table>
+      </div>
+      <nav class="admin-pagination" aria-label="Customer measurement pages">
+        <button class="button button-light" id="admin-measurements-previous" type="button">Previous</button>
+        <span id="admin-measurements-page-label">Page 1</span>
+        <button class="button button-light" id="admin-measurements-next" type="button">Next</button>
+      </nav>
+    </section>
+
+    <section class="admin-card admin-measurement-detail" id="admin-measurement-detail" aria-live="polite" hidden>
+      <div class="admin-panel-heading">
+        <div><p class="eyebrow">Customer measurement profile</p><h2 id="admin-measurement-detail-title">Profile details</h2></div>
+        <button class="button button-light" id="admin-measurement-close" type="button">Close</button>
+      </div>
+      <p class="admin-detail-message" id="admin-measurement-detail-message" role="status" aria-live="polite"></p>
+      <div class="admin-detail-grid" id="admin-measurement-detail-content"></div>
+      <div class="admin-measurement-detail-actions" id="admin-measurement-detail-actions" hidden>
+        <button class="button button-burgundy" id="admin-measurement-edit" type="button">Edit profile</button>
+      </div>
+      <form class="admin-measurement-edit-form" id="admin-measurement-edit-form" hidden>
+        <h3>Edit measurement profile</h3>
+        <div class="admin-measurement-edit-grid">
+          <label for="admin-measurement-profile-name">Profile name
+            <input id="admin-measurement-profile-name" name="profileName" type="text" maxlength="100" required>
+          </label>
+          <label for="admin-measurement-profile-category">Garment category
+            <select id="admin-measurement-profile-category" name="garmentCategory" required>
+              <option value="BLOUSE">Blouse</option>
+              <option value="SUIT_SALWAR_KAMEEZ">Suit / Salwar Kameez</option>
+              <option value="LEHENGA">Lehenga</option>
+              <option value="KURTI">Kurti</option>
+              <option value="PANTS_PALAZZO">Pants / Palazzo</option>
+              <option value="ANARKALI_GOWN">Anarkali / Gown</option>
+            </select>
+          </label>
+          <label for="admin-measurement-profile-unit">Display unit
+            <select id="admin-measurement-profile-unit" name="unitPreference">
+              <option value="cm">Centimetres (cm)</option>
+              <option value="in">Inches (in)</option>
+            </select>
+          </label>
+          <label for="admin-measurement-fitting">Fitting preference
+            <select id="admin-measurement-fitting" name="fittingPreference">
+              <option value="">No preference</option>
+              <option value="SNUG">Snug</option>
+              <option value="REGULAR">Regular</option>
+              <option value="RELAXED">Relaxed</option>
+            </select>
+          </label>
+        </div>
+        <p class="admin-measurement-edit-note">If measurements are changed, the values entered below replace the complete set for this profile. Leave a value blank to remove it.</p>
+        <div class="admin-measurement-fields" id="admin-measurement-fields"></div>
+        <label class="admin-measurement-notes-label" for="admin-measurement-notes">Notes
+          <textarea id="admin-measurement-notes" name="notes" rows="3" maxlength="1000"></textarea>
+        </label>
+        <div class="admin-measurement-edit-actions">
+          <button class="button button-burgundy" id="admin-measurement-save" type="submit">Save changes</button>
+          <button class="button button-light" id="admin-measurement-cancel" type="button">Cancel</button>
+        </div>
+      </form>
+    </section>
   </main>
 </body>
 </html>

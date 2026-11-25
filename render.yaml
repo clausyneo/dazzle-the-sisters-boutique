@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: dazzle-the-sisters-boutique
+    runtime: node
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/status
+    autoDeploy: false
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_SSL_CA_PATH
+        value: /etc/secrets/tidb-ca.pem
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: ADMIN_FRONTEND_ORIGIN
+        sync: false
+      - key: FRONTEND_BASE_URL
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: BREVO_SENDER_EMAIL
+        sync: false
+      - key: BREVO_SENDER_NAME
+        sync: false
+
+  - type: web
+    name: dazzle-the-sisters-boutique-frontend
+    runtime: static
+    buildCommand: echo no-build-step-required
+    staticPublishPath: frontend
+    autoDeploy: false

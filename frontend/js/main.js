@@ -28,6 +28,8 @@ if (menuButton && menuPanel && siteHeader) {
             ? "account-register"
             : pageName === "my-account.html"
               ? "my-account"
+              : pageName === "measurement-studio.html"
+                ? "measurement-studio"
         : pageName === "index.html" || pageName === ""
           ? window.location.hash.slice(1) || "home"
           : "";
@@ -86,6 +88,8 @@ async function accountApiRequest(path, options = {}) {
   return result;
 }
 
+window.DAZZLE_ACCOUNT_API = accountApiRequest;
+
 function setAccountMenu(customer) {
   if (!menuPanel) return;
   let accountLinks = menuPanel.querySelector(".menu-account-links");
@@ -95,6 +99,15 @@ function setAccountMenu(customer) {
     menuPanel.append(accountLinks);
   }
   accountLinks.replaceChildren();
+
+  let measurementLink = menuPanel.querySelector('a[data-page="measurement-studio"]');
+  if (!measurementLink) {
+    measurementLink = document.createElement("a");
+    measurementLink.href = "measurement-studio.html";
+    measurementLink.dataset.page = "measurement-studio";
+    measurementLink.textContent = "Royal Measurement Studio";
+    accountLinks.append(measurementLink);
+  }
 
   if (customer) {
     const accountLink = document.createElement("a");
@@ -132,7 +145,8 @@ function setAccountMenu(customer) {
 
   const currentPage = window.location.pathname.split("/").pop();
   accountLinks.querySelectorAll("[data-page]").forEach((link) => {
-    if ((currentPage === "my-account.html" && link.dataset.page === "my-account") ||
+    if ((currentPage === "measurement-studio.html" && link.dataset.page === "measurement-studio") ||
+        (currentPage === "my-account.html" && link.dataset.page === "my-account") ||
         (currentPage === "account-login.html" && link.dataset.page === "account-login") ||
         (currentPage === "account-register.html" && link.dataset.page === "account-register")) {
       link.setAttribute("aria-current", "page");
@@ -1407,7 +1421,11 @@ for (const form of [
         body: JSON.stringify(formValues)
       });
       setAccountMenu(result.customer);
-      window.location.href = "my-account.html";
+      const returnTo = new URLSearchParams(window.location.search).get("returnTo");
+      const start = new URLSearchParams(window.location.search).get("start");
+      window.location.href = returnTo === "measurement-studio.html"
+        ? `measurement-studio.html${start === "1" ? "?start=1" : ""}`
+        : "my-account.html";
     } catch (error) {
       showAccountMessage(
         message,

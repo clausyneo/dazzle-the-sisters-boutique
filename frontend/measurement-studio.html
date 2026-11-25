@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Save and manage your Dazzle boutique garment measurements in the Royal Measurement Studio.">
+  <title>Royal Measurement Studio | Dazzle The Sister's Boutique</title>
+  <link rel="icon" type="image/png" href="assets/images/brand/dazzle-logo.png">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/config.js" defer></script>
+  <script src="js/main.js" defer></script>
+  <script src="js/measurement-studio.js" defer></script>
+</head>
+<body>
+  <div class="announcement">A little tradition, a lot of you.</div>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Dazzle The Sister's Boutique home">
+      <img class="brand-logo" src="assets/images/brand/dazzle-logo.png" alt="">
+      <span class="brand-copy">
+        <span class="brand-name">Dazzle</span>
+        <span class="brand-caption">THE SISTER'S BOUTIQUE</span>
+      </span>
+    </a>
+    <nav class="site-navigation" aria-label="Main navigation">
+      <a href="index.html#home" data-page="home">Home</a>
+      <a href="shop.html" data-page="shop">Shop</a>
+      <a href="index.html#custom-stitching" data-page="custom-stitching">Custom Stitching</a>
+      <a href="cart.html" data-page="cart">Cart <span class="cart-count" aria-label="items in cart">0</span></a>
+    </nav>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-panel" aria-haspopup="true">
+      <span class="menu-icon" aria-hidden="true"></span>
+      <span>Menu</span>
+    </button>
+    <nav class="menu-panel" id="menu-panel" aria-label="More pages" aria-hidden="true" inert>
+      <a href="index.html#home" data-page="home">Home</a>
+      <a href="shop.html" data-page="shop">Shop</a>
+      <a href="index.html#custom-stitching" data-page="custom-stitching">Custom Stitching</a>
+      <a href="measurement-studio.html" data-page="measurement-studio">Royal Measurement Studio</a>
+      <a href="cart.html" data-page="cart">Cart</a>
+      <a href="order-tracking.html" data-page="order-tracking">Track Order</a>
+      <a href="index.html#about" data-page="about">About</a>
+      <a href="index.html#contact" data-page="contact">Contact</a>
+    </nav>
+  </header>
+
+  <main class="measurement-studio">
+    <section class="studio-hero">
+      <div class="studio-hero-copy">
+        <p class="eyebrow">A more personal fit, beautifully kept</p>
+        <h1>Welcome to the <em>Royal Measurement Studio</em></h1>
+        <p>
+          Keep your garment measurements in one private place, choose your
+          preferred units and return whenever you are planning a new look.
+        </p>
+        <div class="studio-hero-actions">
+          <button class="button button-gold" id="start-measuring" type="button">Start Measuring</button>
+          <a class="button button-outline" href="#measurement-book">My Measurement Book</a>
+        </div>
+        <p class="studio-privacy-note">Your saved measurements belong to your signed-in account. No body photographs are needed.</p>
+      </div>
+      <div class="studio-hero-art" aria-hidden="true">
+        <span class="studio-art-star">✦</span>
+        <span class="studio-art-ring"></span>
+        <span class="studio-art-mark">D</span>
+        <span class="studio-art-caption">Measured with care</span>
+      </div>
+    </section>
+
+    <section class="studio-safety section-wrap" aria-labelledby="preparation-heading">
+      <div class="section-heading">
+        <p class="eyebrow">Before you begin</p>
+        <h2 id="preparation-heading">A calm, comfortable measuring moment</h2>
+        <p>A few small steps help keep your measurements useful and consistent.</p>
+      </div>
+      <div class="studio-safety-grid">
+        <article class="studio-note-card">
+          <span class="studio-note-number">01</span>
+          <h3>Use a flexible tape</h3>
+          <p>Use a soft sewing tape that follows your body without stretching. Keep it level and comfortably snug, never tight.</p>
+        </article>
+        <article class="studio-note-card">
+          <span class="studio-note-number">02</span>
+          <h3>Stand naturally</h3>
+          <p>Measure over light clothing, relax your shoulders and breathe normally. Do not pull in your stomach or hold your breath.</p>
+        </article>
+        <article class="studio-note-card">
+          <span class="studio-note-number">03</span>
+          <h3>Ask for a hand</h3>
+          <p>A trusted helper can make shoulder, back and length measurements easier. Recheck the tape position before recording.</p>
+        </article>
+        <article class="studio-note-card studio-note-card-private">
+          <span class="studio-note-number">04</span>
+          <h3>Keep it private</h3>
+          <p>Please do not upload body photographs or share unnecessary sensitive information. A number and a short fit note are enough.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="studio-guide section-wrap" aria-labelledby="guide-heading">
+      <div class="section-heading">
+        <p class="eyebrow">The beginner's guide</p>
+        <h2 id="guide-heading">Where does the tape go?</h2>
+        <p>These simple illustrations are a guide. Keep the tape flat against the clothing and avoid twisting it.</p>
+      </div>
+      <div class="studio-guide-grid">
+        <article class="studio-guide-card">
+          <figure class="studio-diagram" aria-hidden="true"><svg viewBox="0 0 100 130"><path class="diagram-body" d="M37 18 23 25 15 57l12 5 7-20v29l-7 47h17l6-37 6 37h17l-7-47V42l7 20 12-5-8-32-14-7-10 8h-8z"/><path class="diagram-tape" d="M24 49c14 7 38 7 52 0"/></svg></figure>
+          <h3>Bust / Chest</h3>
+          <p>Wrap the tape around the fullest part of the chest, keeping it level across the back.</p>
+          <p class="studio-mistake"><strong>Avoid:</strong> pulling the tape tight or letting it slope.</p>
+        </article>
+        <article class="studio-guide-card">
+          <figure class="studio-diagram" aria-hidden="true"><svg viewBox="0 0 100 130"><path class="diagram-body" d="M37 18 23 25 15 57l12 5 7-20v29l-7 47h17l6-37 6 37h17l-7-47V42l7 20 12-5-8-32-14-7-10 8h-8z"/><path class="diagram-tape" d="M29 70c12 5 30 5 42 0"/></svg></figure>
+          <h3>Waist</h3>
+          <p>Measure around your natural waist, usually the narrowest part of your torso. Breathe normally.</p>
+          <p class="studio-mistake"><strong>Avoid:</strong> measuring over a bulky waistband.</p>
+        </article>
+        <article class="studio-guide-card">
+          <figure class="studio-diagram" aria-hidden="true"><svg viewBox="0 0 100 130"><path class="diagram-body" d="M37 18 23 25 15 57l12 5 7-20v29l-7 47h17l6-37 6 37h17l-7-47V42l7 20 12-5-8-32-14-7-10 8h-8z"/><path class="diagram-tape" d="M26 83c13 6 35 6 48 0"/></svg></figure>
+          <h3>Hips</h3>
+          <p>Measure around the fullest part of your hips and seat, with your feet together and tape level.</p>
+          <p class="studio-mistake"><strong>Avoid:</strong> measuring only around the hip bones.</p>
+        </article>
+        <article class="studio-guide-card">
+          <figure class="studio-diagram" aria-hidden="true"><svg viewBox="0 0 100 130"><path class="diagram-body" d="M37 18 23 25 15 57l12 5 7-20v29l-7 47h17l6-37 6 37h17l-7-47V42l7 20 12-5-8-32-14-7-10 8h-8z"/><path class="diagram-tape" d="M36 23h28"/></svg></figure>
+          <h3>Shoulder</h3>
+          <p>Measure from the outer edge of one shoulder to the other, following the natural shoulder line.</p>
+          <p class="studio-mistake"><strong>Avoid:</strong> measuring around the neck.</p>
+        </article>
+        <article class="studio-guide-card">
+          <figure class="studio-diagram" aria-hidden="true"><svg viewBox="0 0 100 130"><path class="diagram-body" d="M37 18 23 25 15 57l12 5 7-20v29l-7 47h17l6-37 6 37h17l-7-47V42l7 20 12-5-8-32-14-7-10 8h-8z"/><path class="diagram-tape" d="M30 43c4 10 8 13 14 13"/></svg></figure>
+          <h3>Armhole</h3>
+          <p>Loop the tape around the shoulder and under the arm where a sleeve seam would sit.</p>
+          <p class="studio-mistake"><strong>Avoid:</strong> pinching the tape into the underarm.</p>
+        </article>
+        <article class="studio-guide-card">
+          <figure class="studio-diagram" aria-hidden="true"><svg viewBox="0 0 100 130"><path class="diagram-body" d="M37 18 23 25 15 57l12 5 7-20v29l-7 47h17l6-37 6 37h17l-7-47V42l7 20 12-5-8-32-14-7-10 8h-8z"/><path class="diagram-tape" d="M18 45c5 5 10 7 15 7"/></svg></figure>
+          <h3>Bicep</h3>
+          <p>Measure around the fullest part of the upper arm, with the arm resting comfortably by your side.</p>
+          <p class="studio-mistake"><strong>Avoid:</strong> flexing the arm or tightening the tape.</p>
+        </article>
+        <article class="studio-guide-card">
+          <figure class="studio-diagram" aria-hidden="true"><svg viewBox="0 0 100 130"><path class="diagram-body" d="M37 18 23 25 15 57l12 5 7-20v29l-7 47h17l6-37 6 37h17l-7-47V42l7 20 12-5-8-32-14-7-10 8h-8z"/><path class="diagram-tape" d="M18 46 27 82"/></svg></figure>
+          <h3>Sleeve Length</h3>
+          <p>Measure from the shoulder point along a slightly bent arm to your preferred sleeve end.</p>
+          <p class="studio-mistake"><strong>Avoid:</strong> measuring with the arm locked straight.</p>
+        </article>
+        <article class="studio-guide-card">
+          <figure class="studio-diagram" aria-hidden="true"><svg viewBox="0 0 100 130"><path class="diagram-body" d="M37 18 23 25 15 57l12 5 7-20v29l-7 47h17l6-37 6 37h17l-7-47V42l7 20 12-5-8-32-14-7-10 8h-8z"/><path class="diagram-tape" d="M72 35v65"/></svg></figure>
+          <h3>Garment Length</h3>
+          <p>Measure from the garment's shoulder or waist starting point down to the hem you want.</p>
+          <p class="studio-mistake"><strong>Avoid:</strong> changing shoes or posture between checks.</p>
+        </article>
+        <article class="studio-guide-card">
+          <figure class="studio-diagram" aria-hidden="true"><svg viewBox="0 0 100 130"><path class="diagram-body" d="M37 18 23 25 15 57l12 5 7-20v29l-7 47h17l6-37 6 37h17l-7-47V42l7 20 12-5-8-32-14-7-10 8h-8z"/><path class="diagram-tape" d="M42 70v49"/></svg></figure>
+          <h3>Inseam</h3>
+          <p>Measure from the top of the inner thigh down to the ankle or trouser hem position.</p>
+          <p class="studio-mistake"><strong>Avoid:</strong> pulling the tape upward or measuring over shoes.</p>
+        </article>
+      </div>
+      <p class="studio-guide-note">Not every garment uses every measurement. The form below shows only the fields needed for your selected style.</p>
+    </section>
+
+    <section class="studio-builder section-wrap" id="profile-builder" aria-labelledby="builder-heading">
+      <div class="section-heading">
+        <p class="eyebrow">Made for your wardrobe</p>
+        <h2 id="builder-heading">Create a measurement profile</h2>
+        <p>Choose a garment, add the measurements shown and review everything before saving.</p>
+      </div>
+      <p class="form-message studio-page-message" id="studio-page-message" role="status" aria-live="polite"></p>
+      <div class="studio-auth-notice" id="studio-auth-notice" hidden>
+        <h3>Your Measurement Book is private</h3>
+        <p>Sign in or create a customer account to save and view your measurements. You will return to the studio afterward.</p>
+        <div class="studio-auth-actions">
+          <a class="button button-burgundy" id="studio-login-link" href="account-login.html?returnTo=measurement-studio.html&amp;start=1">Sign In</a>
+          <a class="button button-outline" id="studio-register-link" href="account-register.html?returnTo=measurement-studio.html&amp;start=1">Create Account</a>
+        </div>
+      </div>
+
+      <form class="studio-builder-card" id="measurement-form" hidden>
+        <div class="studio-progress">
+          <div class="studio-progress-copy">
+            <p class="eyebrow">Your fitting journey</p>
+            <p id="studio-step-label">Step 1 of 3 · Choose your garment</p>
+          </div>
+          <div class="studio-progress-track" role="progressbar" aria-label="Measurement profile progress" aria-valuemin="1" aria-valuemax="3" aria-valuenow="1">
+            <span id="studio-progress-fill"></span>
+          </div>
+        </div>
+
+        <section class="studio-step" data-step="1" aria-labelledby="studio-step-one-heading">
+          <h3 id="studio-step-one-heading">Choose your garment</h3>
+          <p>Each profile is for one garment type. You can save more profiles later.</p>
+          <label for="profile-category">Garment category</label>
+          <select id="profile-category" name="garmentCategory" required>
+            <option value="">Select a garment</option>
+            <option value="BLOUSE">Blouse</option>
+            <option value="SUIT_SALWAR_KAMEEZ">Suit / Salwar Kameez</option>
+            <option value="LEHENGA">Lehenga</option>
+            <option value="KURTI">Kurti</option>
+            <option value="PANTS_PALAZZO">Pants / Palazzo</option>
+            <option value="ANARKALI_GOWN">Anarkali / Gown</option>
+          </select>
+          <label for="profile-name">Profile name</label>
+          <input id="profile-name" name="profileName" type="text" maxlength="100" placeholder="For example, Festive blouse" required>
+          <label for="profile-fitting">Fitting preference <span class="studio-optional">Optional</span></label>
+          <select id="profile-fitting" name="fittingPreference">
+            <option value="">No preference</option>
+            <option value="SNUG">Snug</option>
+            <option value="REGULAR">Regular</option>
+            <option value="RELAXED">Relaxed</option>
+          </select>
+          <div class="studio-step-actions">
+            <button class="button button-burgundy" type="button" data-next-step>Continue to measurements</button>
+            <button class="text-button studio-cancel-edit" type="button" data-cancel-edit hidden>Cancel editing</button>
+          </div>
+        </section>
+
+        <section class="studio-step" data-step="2" aria-labelledby="studio-step-two-heading" hidden>
+          <h3 id="studio-step-two-heading">Add your measurements</h3>
+          <p>Enter each value in the selected unit. Changing units converts the display without discarding your entries.</p>
+          <label for="profile-unit">Measurement unit</label>
+          <select id="profile-unit" name="unitPreference">
+            <option value="cm">Centimetres (cm)</option>
+            <option value="in">Inches (in)</option>
+          </select>
+          <div class="studio-measurement-fields" id="measurement-fields"></div>
+          <label for="profile-notes">Fit notes <span class="studio-optional">Optional</span></label>
+          <textarea id="profile-notes" name="notes" rows="3" maxlength="1000" placeholder="For example, prefer a little extra ease at the waist."></textarea>
+          <div class="studio-step-actions">
+            <button class="text-button" type="button" data-previous-step>Back</button>
+            <button class="button button-burgundy" type="button" data-next-step>Review your profile</button>
+          </div>
+        </section>
+
+        <section class="studio-step" data-step="3" aria-labelledby="studio-step-three-heading" hidden>
+          <h3 id="studio-step-three-heading">Review before saving</h3>
+          <p>Check your garment, preferred unit and every measurement below.</p>
+          <div class="studio-review" id="measurement-review"></div>
+          <label class="studio-confirm-label" for="confirm-measurements">
+            <input id="confirm-measurements" type="checkbox">
+            I have checked these measurements and want to save this profile.
+          </label>
+          <div class="studio-step-actions">
+            <button class="text-button" type="button" data-previous-step>Back to measurements</button>
+            <button class="button button-burgundy" id="save-measurements" type="submit" disabled>Save measurement profile</button>
+          </div>
+        </section>
+      </form>
+    </section>
+
+    <section class="studio-book section-wrap" id="measurement-book" aria-labelledby="book-heading">
+      <div class="section-heading studio-book-heading">
+        <div>
+          <p class="eyebrow">Yours to revisit</p>
+          <h2 id="book-heading">My Measurement Book</h2>
+          <p>View, update or remove your saved garment profiles.</p>
+        </div>
+        <button class="button button-burgundy" id="book-start-measuring" type="button">Create a profile</button>
+      </div>
+      <p class="form-message studio-book-message" id="book-message" role="status" aria-live="polite"></p>
+      <div class="studio-book-content" id="book-content" hidden>
+        <p id="book-loading" class="studio-book-state">Loading your profiles…</p>
+        <div id="book-error-state" class="studio-book-state" hidden>
+          <p id="book-error-message">Your Measurement Book could not be loaded.</p>
+          <button class="text-button" id="retry-book" type="button">Try again</button>
+        </div>
+        <div id="book-empty-state" class="studio-empty-state" hidden>
+          <span class="studio-empty-mark" aria-hidden="true">✦</span>
+          <h3>Your book is ready for its first profile</h3>
+          <p>Save a blouse, suit, lehenga or another garment to get started.</p>
+          <button class="button button-burgundy" type="button" data-start-profile>Create your first profile</button>
+        </div>
+        <ul class="studio-profile-list" id="profile-list"></ul>
+      </div>
+      <p class="studio-book-privacy">Only profiles connected to your signed-in customer account are shown here. You can save up to 20 profiles.</p>
+    </section>
+
+    <section class="studio-contact">
+      <div>
+        <p class="eyebrow">We are happy to help</p>
+        <h2>Need a little guidance?</h2>
+        <p>Contact the boutique if you have a question about taking or using your measurements.</p>
+      </div>
+      <div class="studio-contact-actions">
+        <a class="button button-gold" href="tel:+919990337224">Call +91 9990337224</a>
+        <a class="button button-outline" href="mailto:rajniverma8447@gmail.com">Email the Boutique</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-brand">
+      <a class="brand brand-footer" href="index.html">
+        <img class="brand-logo" src="assets/images/brand/dazzle-logo.png" alt="">
+        <span class="brand-copy"><span class="brand-name">Dazzle</span><span class="brand-caption">THE SISTER'S BOUTIQUE</span></span>
+      </a>
+      <p>Ethnic wear and custom stitching, made with care.</p>
+    </div>
+    <div class="footer-contact">
+      <p class="eyebrow">Come say hello</p>
+      <p>Visit us in-store or get in touch to discuss your next outfit.</p>
+      <p><a href="tel:+919990337224">+91 9990337224</a></p>
+      <p><a href="mailto:rajniverma8447@gmail.com">rajniverma8447@gmail.com</a></p>
+      <p><a href="index.html#contact">Visit the boutique contact page</a></p>
+    </div>
+    <p class="copyright">&copy; 2026 Dazzle The Sister's Boutique. Made with care.</p>
+  </footer>
+</body>
+</html>

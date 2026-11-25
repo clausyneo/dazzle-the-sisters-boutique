@@ -27,6 +27,12 @@ Dazzle the Sister's Boutique is an online shopping platform for women's ethnic w
 - COD payment recording
 - Payment status tracking
 
+### Royal Measurement Studio
+- Authenticated customer APIs for measurement profiles across supported garment categories
+- Measurement values stored in centimetres with a customer-selected display unit
+- Customer Measurement Book with create, view, edit and delete journeys
+- Admin search, view and edit tools for customer measurement profiles
+
 ## Technology Stack
 
 | Layer | Technology |
@@ -41,61 +47,10 @@ Dazzle the Sister's Boutique is an online shopping platform for women's ethnic w
 
 ## Project Structure
 
-```text
-dazzle-the-sisters-boutique/
-├── backend/
-│   ├── accounts.js
-│   ├── accounts.test.js
-│   ├── admin.js
-│   ├── admin.test.js
-│   ├── create-admin.js
-│   ├── database.js
-│   ├── email.js
-│   ├── email.test.js
-│   ├── orders.js
-│   ├── orders.test.js
-│   ├── reset-admin-password.js
-│   └── server.js
-│
-├── database/
-│   ├── migrations/
-│   ├── checkout_schema.sql
-│   ├── dazzle_boutique.sql
-│   ├── seed_demo_product_size_stock.sql
-│   └── seed_existing_product_size_stock.sql
-│
-├── docs/
-│   └── screenshots/
-│
-├── frontend/
-│   ├── assets/
-│   │   └── images/
-│   ├── css/
-│   │   └── style.css
-│   ├── js/
-│   │   ├── admin.js
-│   │   └── main.js
-│   └── ├── account-login.html
-├── account-register.html
-├── admin-dashboard.html
-├── admin-login.html
-├── cart.html
-├── checkout.html
-├── forgot-password.html
-├── index.html
-├── my-account.html
-├── order-confirmation.html
-├── order-tracking.html
-├── product-details.html
-├── reset-password.html
-└── shop.html
-│
-├── .env.example
-├── .gitignore
-├── package.json
-├── package-lock.json
-└── README.md
-```
+backend/ - Node API and tests
+database/ - schema, seeds, and migrations
+frontend/ - static storefront, account/admin pages, and assets
+render.yaml - Render backend and static-site Blueprint
 
 ## System Architecture
 
@@ -184,13 +139,81 @@ Create the `dazzle_boutique` database and execute the SQL setup files and migrat
 
 The database directory contains the schema, migrations and product stock seed scripts. Review each script before executing it against an existing database.
 
+The customer measurement profile migration is additive and depends on the active
+`customers` table. Review
+[`database/migrations/README.md`](database/migrations/README.md) before applying
+it. It has not been run against the production database.
+
 ### 5. Start the backend
 
 ```bash
 npm start
 ```
 
-The backend uses the configuration in `.env`.
+The backend reads process environment variables. For local development, load
+your ignored `.env` file in your shell or use `node --env-file=.env
+backend/server.js` directly. The Render start command is `npm start`; it does
+not require an `.env` file.
+
+## Render deployment
+
+The root `render.yaml` describes a Node web service and a static site publishing
+the `frontend` directory. The backend health check uses `/api/status`. The
+Blueprint sets automatic deployment off; review service names and settings in
+Render before applying it. A Blueprint file does not perform a deployment by
+itself.
+
+Set these backend environment variable names in Render (enter values in the
+Render dashboard, never in Git):
+
+- Required database settings: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`,
+  `DB_NAME`, and `DB_SSL_CA_PATH`.
+- Set `NODE_ENV` to `production`; Render supplies `PORT`.
+- Set `FRONTEND_ORIGIN` and `ADMIN_FRONTEND_ORIGIN` to the deployed browser
+  origin or origins. Multiple comma-separated origins are supported.
+- Set `FRONTEND_BASE_URL` to the public frontend URL for password reset links.
+- Email is optional; use `BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, and
+  `BREVO_SENDER_NAME` for Brevo, or `SMTP_HOST`, `SMTP_PORT`,
+  `SMTP_USERNAME`, `SMTP_PASSWORD`, and `SMTP_FROM` for SMTP.
+
+Upload the database CA certificate as a Render secret file named
+`tidb-ca.pem`; the Blueprint points `DB_SSL_CA_PATH` at
+`/etc/secrets/tidb-ca.pem`. Do not add the certificate to the repository.
+`frontend/js/config.js` uses localhost for local development and the configured
+production API origin for public hosts. Update that public origin if the
+backend service URL changes.
+
+## Measurement profile API
+
+Customer routes require the existing customer session cookie and always scope
+profile access to the signed-in customer:
+
+| Method | Route | Purpose |
+|---|---|---|
+| `GET` | `/api/account/measurement-profiles` | List the signed-in customer's profiles |
+| `POST` | `/api/account/measurement-profiles` | Create a profile |
+| `GET` | `/api/account/measurement-profiles/:profileId` | View one owned profile |
+| `PATCH` | `/api/account/measurement-profiles/:profileId` | Edit one owned profile |
+| `DELETE` | `/api/account/measurement-profiles/:profileId` | Delete one owned profile |
+
+Admin routes require the existing admin session. The list supports `search`,
+`garmentCategory`, `page`, and `pageSize`; admins can also view and edit one
+profile:
+
+| Method | Route | Purpose |
+|---|---|---|
+| `GET` | `/api/admin/measurement-profiles` | Search and list profiles |
+| `GET` | `/api/admin/measurement-profiles/:profileId` | View a profile |
+| `PATCH` | `/api/admin/measurement-profiles/:profileId` | Edit a profile |
+
+Supported category codes are `BLOUSE`, `SUIT_SALWAR_KAMEEZ`, `LEHENGA`,
+`KURTI`, `PANTS_PALAZZO`, and `ANARKALI_GOWN`. Measurement values are
+validated per category and stored in centimetres; responses use each
+profile's `unitPreference`. Each customer can save up to 20 profiles. In a
+`PATCH` request, a supplied `measurements` object replaces the complete
+measurement set; omit it to preserve all existing measurement values. See
+[`database/migrations/README.md`](database/migrations/README.md) before
+applying the additive schema migration.
 
 ### 6. Start the frontend
 
@@ -216,15 +239,72 @@ Run JavaScript syntax checks:
 npm run check
 ```
 
+### Isolated measurement integration tests
+
+The real HTTP integration harness is opt-in and uses `.env.test` only. Node.js
+20.12 or newer is required. Configure these keys in the ignored `.env.test`
+file: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, and
+`DB_SSL_CA_PATH`. The harness accepts only the approved TiDB test host on port
+`4000` and database `dazzle_boutique_test`; it requires TiDB v8.5.3 or newer,
+pessimistic global and session transaction modes, and a valid CA certificate
+with server identity verification enabled.
+
+Apply and verify the customer, session, admin, and measurement schemas in the
+isolated test database before running the harness. It never creates or alters
+tables. Before writing, it requires exactly the six expected integration
+tables and verifies that all are empty; it stops if tables are missing,
+unexpected tables exist, or any rows are present. Tests use random synthetic
+identities, run the API on `127.0.0.1`, and remove their rows through customer
+and admin foreign-key cascades. Cleanup checks all six tables and causes a
+non-zero exit if any rows remain.
+
+Run the integration suite with:
+
+```bash
+npm run test:integration
+```
+
+The harness does not use `.env`, does not run migrations, and never prints
+credentials, passwords, session cookies, or tokens. Do not run it against a
+database containing data you need to preserve.
+
+### Royal Measurement Studio browser tests
+
+The Playwright browser harness uses the same `.env.test`-only safety checks and
+the approved, empty `dazzle_boutique_test` database. Install project packages
+and Chromium once:
+
+```bash
+npm install
+npx playwright install chromium
+```
+
+Then run the desktop/mobile browser journeys:
+
+```bash
+npm run test:browser
+```
+
+The harness verifies the database host, database name, TiDB version,
+pessimistic transaction modes, TLS CA and server identity before creating any
+test data. It requires the six integration tables to match the test schema and
+be empty. The customer and admin APIs use the real local backend and database;
+only unrelated admin order-dashboard requests are stubbed. Both web servers
+bind to loopback, the browser blocks non-local requests, and the test frontend
+configuration points only to the loopback API. Synthetic customer/admin data
+is removed in a `finally` cleanup and all six tables are checked afterward.
+The test prints no credentials, passwords, cookies or tokens. Failure
+screenshots are saved under the ignored `test-results/` directory.
+
 ## Project Scope
 
 The minor project focuses on readymade product shopping, customer accounts, COD checkout, order tracking, email notifications and basic administration.
 
-Advanced boutique operations such as custom stitching management, digital measurement records, advanced inventory management and labour management are reserved for future development.
+Advanced boutique operations such as custom stitching management, advanced inventory management and labour management are reserved for future development. Customer measurement profiles are implemented in the Royal Measurement Studio described above.
 
 ## Testing Status
 
-The project has passed 94 automated tests and manual end-to-end testing of its core customer, order-management and COD payment workflows.
+The prior baseline recorded 94 automated tests and manual end-to-end testing of core customer, order-management and COD workflows. The current feature branch adds measurement unit tests; see the current test run results before publication.
 
 ## Academic Information
 
